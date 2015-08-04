@@ -161,8 +161,12 @@ module Android
       if /^@(\w+\/\w+)|(0x[0-9a-fA-F]{8})$/ =~ icon_id
         drawables = @resource.find(icon_id)
         Hash[drawables.map {|name| [name, file(name)] }]
-      else 
-        { icon_id => file(icon_id) } # ugh!: not tested!!
+      else
+        begin
+          { icon_id => file(icon_id) } # ugh!: not tested!!
+        rescue NotFoundError
+          {}
+        end
       end
     end
 
