@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "ruby_apk"
-  s.version = "0.7.1"
+  s.version = "0.8.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["SecureBrain"]
-  s.date = "2013-09-24"
+  s.authors = ["SecureBrain", "PlaytestCloud"]
+  s.date = "2015-10-23"
   s.description = "static analysis tool for android apk"
   s.email = "info@securebrain.co.jp"
   s.extra_rdoc_files = [
@@ -94,4 +94,3 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<simplecov>, [">= 0"])
   end
 end
-
