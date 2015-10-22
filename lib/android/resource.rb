@@ -132,10 +132,10 @@ module Android
         tid = ((hex_id&0xff0000) >>16)
         key = hex_id&0xffff
 
-        case type(tid) 
+        case type(tid)
         when 'string'
           return find_res_string(key, opts)
-        when 'drawable'
+        when 'drawable', 'mipmap'
           drawables = []
           @types[tid].each do |type|
             unless type[key].nil?
@@ -215,7 +215,7 @@ module Android
       end
       def key_id(str)
         raise NotFoundError unless key_strings.include? str
-        key_strings.index(str) 
+        key_strings.index(str)
       end
 
       def parse
