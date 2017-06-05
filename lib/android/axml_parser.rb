@@ -19,13 +19,13 @@ module Android
     # axml parse error
     class ReadError < StandardError; end
 
-    TAG_START_DOC = 0x00100100
-    TAG_END_DOC =   0x00100101
-    TAG_START =     0x00100102
-    TAG_END =       0x00100103
-    TAG_TEXT =      0x00100104
-    TAG_CDSECT =    0x00100105
-    TAG_ENTITY_REF= 0x00100106
+    TAG_START_NAMESPACE = 0x00100100
+    TAG_END_NAMESPACE =   0x00100101
+    TAG_START =           0x00100102
+    TAG_END =             0x00100103
+    TAG_TEXT =            0x00100104
+    TAG_CDSECT =          0x00100105
+    TAG_ENTITY_REF =      0x00100106
 
     VAL_TYPE_NULL              =0
     VAL_TYPE_REFERENCE         =1
@@ -61,7 +61,7 @@ module Android
       @xml_offset = word(3*4)
 
       @parents = [@doc]
-      @ns = []
+      @namespaces = []
       parse_strings
       parse_tags
       @doc
@@ -92,9 +92,10 @@ module Android
 
     # parse tag
     def parse_tags
-      # skip until START_TAG
+
+      # skip until first TAG_START_NAMESPACE
       pos = @xml_offset
-      pos += 4 until (word(pos) == TAG_START) #ugh!
+      pos += 4 until (word(pos) == TAG_START_NAMESPACE)
       @io.pos -= 4
 
       # read tags
@@ -105,7 +106,19 @@ module Android
         case tag
         when TAG_START
           tag6, num_attrs, tag8  = @io.read(4*3).unpack("V*")
-          elem = REXML::Element.new(@strings[name_id])
+
+          prefix = ''
+          if ns_id != 0xFFFFFFFF
+            namespace_uri = @strings[ns_id]
+            prefix = get_namespace_prefix(namespace_uri) + ':'
+          end
+          elem = REXML::Element.new(prefix + @strings[name_id])
+
+          # If this element is a direct descendent of a namespace declaration
+          # we add the namespace definition as an attribute.
+          if @namespaces.last[:nesting_level] == current_nesting_level
+            elem.add_namespace(@namespaces.last[:prefix], @namespaces.last[:uri])
+          end
           #puts "start tag %d(%#x): #{@strings[name_id]} attrs:#{num_attrs}" % [last_pos, last_pos]
           @parents.last.add_element elem
           num_attrs.times do
@@ -115,14 +128,21 @@ module Android
           @parents.push elem
         when TAG_END
           @parents.pop
-        when TAG_END_DOC
-          break
+        when TAG_END_NAMESPACE
+          @namespaces.pop
+          break if @namespaces.empty? # if the topmost namespace (usually 'android:') has been closed, we‘re done.
         when TAG_TEXT
           text = REXML::Text.new(@strings[ns_id])
           @parents.last.text = text
           dummy = @io.read(4*1).unpack("V*") # skip 4bytes
-        when TAG_START_DOC, TAG_CDSECT, TAG_ENTITY_REF
-          # not implemented yet.
+        when TAG_START_NAMESPACE
+          prefix = @strings[ns_id]
+          uri = @strings[name_id]
+          @namespaces.push({ prefix: prefix, uri: uri, nesting_level: current_nesting_level })
+        when TAG_CDSECT
+          raise ReadError, "TAG_CDSECT not implemented"
+        when TAG_ENTITY_REF
+          raise ReadError, "TAG_ENTITY_REF not implemented"
         else
           raise ReadError, "pos=%d(%#x)[tag:%#x]" % [last_pos, last_pos, tag]
         end
@@ -134,18 +154,23 @@ module Android
       ns_id, name_id, val_str_id, flags, val = @io.read(4*5).unpack("V*")
       key = @strings[name_id]
       unless ns_id == 0xFFFFFFFF
-        ns = @strings[ns_id] 
-        prefix = ns.sub(/.*\//,'')
-        unless @ns.include? ns
-          @ns << ns
-          @doc.root.add_namespace(prefix, ns)
-        end
+        namespace_uri = @strings[ns_id]
+        prefix = get_namespace_prefix(namespace_uri)
         key = "#{prefix}:#{key}"
       end
       value = convert_value(val_str_id, flags, val)
       return key, value
     end
 
+    # find the most recently declared namespace prefix for a URI
+    def get_namespace_prefix(ns_uri)
+      most_recent_matching_namespace = @namespaces.reverse.find { |ns| ns[:uri] == ns_uri }
+      most_recent_matching_namespace[:prefix]
+    end
+
+    def current_nesting_level
+      @parents.length
+    end
 
     def convert_value(val_str_id, flags, val)
       unless val_str_id == 0xFFFFFFFF
