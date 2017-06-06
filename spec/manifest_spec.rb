@@ -6,19 +6,19 @@ describe Android::Manifest do
       let(:elem) { REXML::Element.new('service') }
       subject { Android::Manifest::Component.valid?(elem) }
       context "with valid component element" do
-        it { should be_true }
+        it { should be_truthy }
       end
       context "with invalid component element" do
         let(:elem) { REXML::Element.new('invalid-name') }
-        it { should be_false }
+        it { should be_falsey }
       end
       context "when some exception occurs in REXML::Element object" do
         let(:elem) {
-          elem = stub(REXML::Element)
+          elem = double(REXML::Element)
           elem.stub(:name).and_raise(StandardError)
           elem
         }
-        it { should be_false }
+        it { should be_falsey }
       end
     end
     describe '#metas' do
@@ -42,7 +42,7 @@ describe Android::Manifest do
     describe Android::Manifest::Meta do
       let(:elem) do
         attrs = { 'name' => 'meta name', 'resource' => 'res', 'value' => 'val' }
-        elem = stub(REXML::Element, :attributes => attrs)
+        elem = double(REXML::Element, :attributes => attrs)
         elem
       end
       subject { Android::Manifest::Meta.new(elem) }
@@ -82,7 +82,7 @@ describe Android::Manifest do
     let(:manifest) { Android::Manifest.new('mock data') }
 
     before do
-      parser = stub(Android::AXMLParser, :parse => dummy_xml) 
+      parser = double(Android::AXMLParser, :parse => dummy_xml) 
       Android::AXMLParser.stub(:new).and_return(parser)
     end
 

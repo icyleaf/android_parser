@@ -4,7 +4,9 @@ require 'simplecov'
 SimpleCov.start do
   add_filter "/spec"
 end
-require 'rspec'
+require 'rspec/its'
+require 'rspec/collection_matchers'
+require 'rspec/mocks'
 require 'ruby_apk'
 
 

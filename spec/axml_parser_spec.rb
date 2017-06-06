@@ -52,15 +52,15 @@ describe Android::AXMLParser do
       let(:flags) { 0x12000008 } 
       context 'and value is 0x01' do
         let(:val) { 0x01 }
-        it { should be_true }
+        it { should be_truthy }
       end
       context 'and value is 0xFFFFFFF' do
         let(:val) { 0xFFFFFFFF }
-        it { should be_true }
+        it { should be_truthy }
       end
       context 'and value is 0x00' do
         let(:val) { 0x00 }
-        it { should be_false }
+        it { should be_falsey }
       end
     end
   end

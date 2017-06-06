@@ -76,7 +76,7 @@ describe Android::Apk do
     subject { apk.manifest }
 
     context "when Manifest parse is succeeded." do
-      let(:mock_mani) { mock(Android::Manifest) }
+      let(:mock_mani) { double(Android::Manifest) }
 
       before do
       end
@@ -95,7 +95,7 @@ describe Android::Apk do
   end
 
   describe "#dex" do
-    let(:mock_dex) { mock(Android::Dex) }
+    let(:mock_dex) { double(Android::Dex) }
     subject { apk.dex }
     context "when there is no dex file" do
       it { should be_nil }
@@ -132,7 +132,7 @@ describe Android::Apk do
   end
 
   describe '#resource' do
-    let(:mock_rsc) { mock(Android::Resource) }
+    let(:mock_rsc) { double(Android::Resource) }
     subject { apk.resource }
     it "should return manifest object" do
       Android::Resource.should_receive(:new).and_return(mock_rsc)

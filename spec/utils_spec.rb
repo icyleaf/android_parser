@@ -8,19 +8,19 @@ describe Android::Utils do
 
     context 'assigns apk file path' do
       let(:apk_path) { sample_apk_path }
-      it { should be_true }
+      it { should be_truthy }
     end
     context 'assigns nil' do
       let(:apk_path) { nil }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assigns not exist path' do
       let(:apk_path) { 'hogehoge' }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assigns not apk file path' do
       let(:apk_path) { __FILE__ }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
 
@@ -28,15 +28,15 @@ describe Android::Utils do
     subject { Android::Utils.elf?(data) }
     context 'assigns data start with elf magic' do
       let(:data) { "\x7fELF\xff\xff\xff" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context 'assigns nil' do
       let(:data) { nil }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assigns not elf data' do
       let(:data) { "\xff\xff\xff\xff\xff\xff" }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
 
@@ -44,15 +44,15 @@ describe Android::Utils do
     subject { Android::Utils.cert?(data) }
     context 'assigns data start with x509 magic' do
       let(:data) { "\x30\x82\xff\xff\xff" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context 'assigns nil' do
       let(:data) { nil }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assigns not valid data' do
       let(:data) { "\xff\xff\xff\xff\xff\xff" }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
 
@@ -60,30 +60,30 @@ describe Android::Utils do
     subject { Android::Utils.dex?(data) }
     context 'assigns dex file data' do
       let(:data) { File.read(sample_dex_path) }
-      it { should be_true }
+      it { should be_truthy }
     end
     context 'assigns nil' do
       let(:data) { nil }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assings not dex data' do
       let(:data) { 'hogehoge' }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
   describe '.valid_dex?' do
     subject { Android::Utils.valid_dex?(data) }
     context 'assigns dex file data' do
       let(:data) { File.read(sample_dex_path) }
-      it { should be_true }
+      it { should be_truthy }
     end
     context 'assigns nil' do
       let(:data) { nil }
-      it { should be_false }
+      it { should be_falsey }
     end
     context 'assings not dex data' do
       let(:data) { 'hogehoge' }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
 end
