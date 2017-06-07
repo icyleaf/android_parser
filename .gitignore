@@ -11,6 +11,9 @@ doc
 # bundler
 .bundle
 
+# rvm
+.ruby-version
+
 # jeweler generated
 #pkg # upload gem file to server
 
