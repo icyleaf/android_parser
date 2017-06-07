@@ -6,6 +6,10 @@ describe Android::AXMLParser do
   let(:bin_xml){ File.open(bin_xml_path, 'rb') {|f| f.read } }
   let(:axmlparser){ Android::AXMLParser.new(bin_xml) }
 
+  let(:bin_xml_with_namespaces_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest_with_namespaces.xml') }
+  let(:bin_xml_with_namespaces){ File.open(bin_xml_with_namespaces_path, 'rb') {|f| f.read } }
+  let(:axmlparser_with_namespaces){ Android::AXMLParser.new(bin_xml_with_namespaces) }
+
   describe "#parse" do
 
     subject { axmlparser.parse }
@@ -25,6 +29,17 @@ describe Android::AXMLParser do
     end
 
   end
+
+  describe "#parse with namespaces" do
+    subject { axmlparser_with_namespaces.parse }
+    context 'with sample_AndroidManifest_with_namespaces.xml' do
+      it { should be_instance_of(REXML::Document) }
+      specify 'it should parse the full manifest even if there are namespaces' do
+        subject.get_elements('/manifest/application').should have(1).item
+      end
+    end
+  end
+
 
   describe "#strings" do
     context 'with sample_AndroidManifest.xml' do
