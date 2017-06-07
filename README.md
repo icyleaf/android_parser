@@ -3,7 +3,7 @@ Android Apk static analysis library for Ruby.
 
 [![Gem Version](https://badge.fury.io/rb/ruby_apk.png)](http://badge.fury.io/rb/ruby_apk)
 [![Build Status](https://travis-ci.org/playtestcloud/ruby_apk.svg?branch=master)](https://travis-ci.org/playtestcloud/ruby_apk)
-[![Dependency Status](https://gemnasium.com/badges/github.com/playtestcloud/ruby_apk.svg)](https://gemnasium.com/github.com/playtestcloud/ruby_apk)
+[![Dependency Status](https://gemnasium.com/badges/github.com/playtestcloud/ruby_apk.png)](https://gemnasium.com/github.com/playtestcloud/ruby_apk)
 
 ## Requirements
 - ruby(>=2.2.2)
