@@ -6,7 +6,7 @@ Android Apk static analysis library for Ruby.
 [![Dependency Status](https://gemnasium.com/badges/github.com/playtestcloud/ruby_apk.svg)](https://gemnasium.com/github.com/playtestcloud/ruby_apk)
 
 ## Requirements
-- ruby(>=1.9.x)
+- ruby(>=2.2.2)
 
 ## Install
     $ gem install ruby_apk
