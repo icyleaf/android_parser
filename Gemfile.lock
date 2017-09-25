@@ -66,11 +66,11 @@ GEM
     rspec-support (3.6.0)
     rubyzip (1.2.1)
     semver2 (3.4.2)
-    simplecov (0.14.1)
+    simplecov (0.15.1)
       docile (~> 1.1.0)
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
-    simplecov-html (0.10.1)
+    simplecov-html (0.10.2)
     thread_safe (0.3.6)
     yard (0.9.9)
 
