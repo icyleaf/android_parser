@@ -275,7 +275,8 @@ module Android
           lang = type.config.locale_lang
           contry = type.config.locale_contry
           if lang.nil? && contry.nil?
-            @res_strings_default = str_hash
+            @res_strings_default ||= {}
+            @res_strings_default.merge!(str_hash) { |_key, val1, _val2| val1 }
           else
             @res_strings_lang[lang] = str_hash unless lang.nil?
             @res_strings_contry[contry] = str_hash unless contry.nil?
