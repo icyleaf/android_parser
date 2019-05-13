@@ -123,6 +123,10 @@ module Android
           @parents.last.add_element elem
           num_attrs.times do
             key, val = parse_attribute
+            if val.is_a?(String)
+              # drop invalid chars that would be rejected by REXML from string
+              val = val.scan(REXML::Text::VALID_XML_CHARS).join
+            end
             elem.add_attribute(key, val)
           end
           @parents.push elem
