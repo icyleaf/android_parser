@@ -194,6 +194,20 @@ module Android
       activities
     end
 
+    def get_launcher_activities
+      launcher_activities = []
+      get_activities.each do |a|
+        a.intent_filters.each do |filters|
+          filters.each do |filter|
+            next unless filter.type == 'category'
+
+            launcher_activities << a if filter.name == 'android.intent.category.LAUNCHER'
+          end
+        end
+      end
+      launcher_activities
+    end
+
     # application package name
     # @return [String]
     def package_name
