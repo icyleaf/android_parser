@@ -182,6 +182,18 @@ module Android
       components
     end
 
+    def get_activities
+      activities = []
+      unless @doc.elements['/manifest/application'].nil?
+        @doc.elements['/manifest/application'].each do |elem|
+          next unless elem.name == 'activity'
+
+          activities << elem
+        end
+      end
+      activities
+    end
+
     # application package name
     # @return [String]
     def package_name
