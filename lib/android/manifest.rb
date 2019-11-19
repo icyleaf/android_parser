@@ -9,7 +9,7 @@ module Android
     # <activity>, <service>, <receiver> or <provider> element in <application> element of the manifest file.
     class Component
       # component types
-      TYPES = ['service', 'activity', 'receiver', 'provider']
+      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider']
 
       # the element is valid Component element or not
       # @param [REXML::Element] elem xml element
@@ -186,7 +186,7 @@ module Android
       activities = []
       unless @doc.elements['/manifest/application'].nil?
         @doc.elements['/manifest/application'].each do |elem|
-          next unless elem.name == 'activity'
+          next unless elem.name == 'activity' || elem.name == 'activity-alias'
 
           activities << elem
         end
