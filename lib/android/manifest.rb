@@ -26,7 +26,7 @@ module Android
       attr_reader :name
       # @return [String] icon id - use apk.icon_by_id(icon_id) to retrieve it's corresponding data.
       attr_reader :icon_id
-      # @return [Array<Manifest::IntentFilter>]
+      # @return [Array<Manifest::IntentFilters<Manifest::IntentFilter>>]
       attr_reader :intent_filters
       # @return [Array<Manifest::Meta>]
       attr_reader :metas
@@ -42,13 +42,20 @@ module Android
         @type = elem.name
         @name = elem.attributes['name']
         @icon_id = elem.attributes['icon']
+
         @intent_filters = []
         unless elem.elements['intent-filter'].nil?
-          elem.elements['intent-filter'].each do |e|
-            next unless e.instance_of? REXML::Element
-            @intent_filters << IntentFilter.parse(e)
+          elem.each_element('intent-filter') do |filters|
+            intent_filters = []
+            filters.elements.each do |filter|
+              next unless IntentFilter.valid?(filter)
+
+              intent_filters << IntentFilter.parse(filter)
+            end
+            @intent_filters << intent_filters
           end
         end
+
         @metas = []
         elem.each_element('meta-data') do |e|
           @metas << Meta.new(e)
@@ -92,6 +99,18 @@ module Android
 
     # intent-filter element in components
     module IntentFilter
+      # filter types
+      TYPES = ['action', 'category', 'data']
+
+      # the element is valid IntentFilter element or not
+      # @param [REXML::Element] elem xml element
+      # @return [Boolean]
+      def self.valid?(elem)
+        TYPES.include?(elem.name.downcase)
+      rescue => e
+        false
+      end
+
       # parse inside of intent-filter element
       # @param [REXML::Element] elem target element
       # @return [IntentFilter::Action, IntentFilter::Category, IntentFilter::Data]
