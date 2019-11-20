@@ -24,6 +24,8 @@ module Android
       attr_reader :type
       # @return [String] component name
       attr_reader :name
+      # @return [String] icon id - use apk.icon_by_id(icon_id) to retrieve it's corresponding data.
+      attr_reader :icon_id
       # @return [Array<Manifest::IntentFilter>]
       attr_reader :intent_filters
       # @return [Array<Manifest::Meta>]
@@ -39,6 +41,7 @@ module Android
         @elem = elem
         @type = elem.name
         @name = elem.attributes['name']
+        @icon_id = elem.attributes['icon']
         @intent_filters = []
         unless elem.elements['intent-filter'].nil?
           elem.elements['intent-filter'].each do |e|
@@ -54,9 +57,6 @@ module Android
     end
 
     class Activity < Component
-      # @return [String] icon id - use apk.icon_by_id(icon_id) to retrieve it's corresponding data.
-      attr_reader :icon_id
-
       # the element is valid Activity element or not
       # @param [REXML::Element] elem xml element
       # @return [Boolean]
@@ -64,13 +64,6 @@ module Android
         ['activity', 'activity-alias'].include?(elem.name.downcase)
       rescue => e
         false
-      end
-
-      # @param [REXML::Element] elem target element
-      # @raise [ArgumentError] when elem is invalid.
-      def initialize(elem)
-        super
-        @icon_id = elem.attributes['icon']
       end
     end
 
