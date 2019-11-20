@@ -53,6 +53,50 @@ module Android
       end
     end
 
+    class Activity < Component
+      # @return [String] icon id - use apk.icon_by_id(icon_id) to retrieve it's corresponding data.
+      attr_reader :icon_id
+
+      # the element is valid Activity element or not
+      # @param [REXML::Element] elem xml element
+      # @return [Boolean]
+      def self.valid?(elem)
+        ['activity', 'activity-alias'].include?(elem.name.downcase)
+      rescue => e
+        false
+      end
+
+      # @param [REXML::Element] elem target element
+      # @raise [ArgumentError] when elem is invalid.
+      def initialize(elem)
+        super
+        @icon_id = elem.attributes['icon']
+      end
+    end
+
+    class ActivityAlias < Activity
+      # @return [String] target activity name
+      attr_reader :target_activity
+
+      # @param [REXML::Element] elem target element
+      # @raise [ArgumentError] when elem is invalid.
+      def initialize(elem)
+        super
+        @target_activity = elem.attributes['targetActivity']
+      end
+    end
+
+    class Service < Component
+    end
+
+    class Receiver < Component
+    end
+
+    class Provider < Component
+    end
+
+
+
     # intent-filter element in components
     module IntentFilter
       # parse inside of intent-filter element
@@ -186,9 +230,9 @@ module Android
       activities = []
       unless @doc.elements['/manifest/application'].nil?
         @doc.elements['/manifest/application'].each do |elem|
-          next unless elem.name == 'activity' || elem.name == 'activity-alias'
+          next unless Activity.valid?(elem)
 
-          activities << elem
+          activities << (elem.name == 'activity-alias' ? ActivityAlias.new(elem) : Activity.new(elem))
         end
       end
       activities
