@@ -238,6 +238,8 @@ module Android
       components
     end
 
+    # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities in the apk
+    # @note return empty array when the manifest include no activities
     def get_activities
       activities = []
       unless @doc.elements['/manifest/application'].nil?
@@ -250,6 +252,8 @@ module Android
       activities
     end
 
+    # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
+    # @note return empty array when the manifest include no activities
     def get_launcher_activities
       launcher_activities = []
       get_activities.each do |a|
