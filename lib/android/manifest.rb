@@ -9,7 +9,7 @@ module Android
     # <activity>, <service>, <receiver> or <provider> element in <application> element of the manifest file.
     class Component
       # component types
-      TYPES = ['service', 'activity', 'receiver', 'provider']
+      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider']
 
       # the element is valid Component element or not
       # @param [REXML::Element] elem xml element
@@ -24,7 +24,9 @@ module Android
       attr_reader :type
       # @return [String] component name
       attr_reader :name
-      # @return [Array<Manifest::IntentFilter>]
+      # @return [String] icon id - use apk.icon_by_id(icon_id) to retrieve it's corresponding data.
+      attr_reader :icon_id
+      # @return [Array<Manifest::IntentFilters<Manifest::IntentFilter>>]
       attr_reader :intent_filters
       # @return [Array<Manifest::Meta>]
       attr_reader :metas
@@ -39,13 +41,21 @@ module Android
         @elem = elem
         @type = elem.name
         @name = elem.attributes['name']
+        @icon_id = elem.attributes['icon']
+
         @intent_filters = []
         unless elem.elements['intent-filter'].nil?
-          elem.elements['intent-filter'].each do |e|
-            next unless e.instance_of? REXML::Element
-            @intent_filters << IntentFilter.parse(e)
+          elem.each_element('intent-filter') do |filters|
+            intent_filters = []
+            filters.elements.each do |filter|
+              next unless IntentFilter.valid?(filter)
+
+              intent_filters << IntentFilter.parse(filter)
+            end
+            @intent_filters << intent_filters
           end
         end
+
         @metas = []
         elem.each_element('meta-data') do |e|
           @metas << Meta.new(e)
@@ -53,8 +63,54 @@ module Android
       end
     end
 
+    class Activity < Component
+      # the element is valid Activity element or not
+      # @param [REXML::Element] elem xml element
+      # @return [Boolean]
+      def self.valid?(elem)
+        ['activity', 'activity-alias'].include?(elem.name.downcase)
+      rescue => e
+        false
+      end
+    end
+
+    class ActivityAlias < Activity
+      # @return [String] target activity name
+      attr_reader :target_activity
+
+      # @param [REXML::Element] elem target element
+      # @raise [ArgumentError] when elem is invalid.
+      def initialize(elem)
+        super
+        @target_activity = elem.attributes['targetActivity']
+      end
+    end
+
+    class Service < Component
+    end
+
+    class Receiver < Component
+    end
+
+    class Provider < Component
+    end
+
+
+
     # intent-filter element in components
     module IntentFilter
+      # filter types
+      TYPES = ['action', 'category', 'data']
+
+      # the element is valid IntentFilter element or not
+      # @param [REXML::Element] elem xml element
+      # @return [Boolean]
+      def self.valid?(elem)
+        TYPES.include?(elem.name.downcase)
+      rescue => e
+        false
+      end
+
       # parse inside of intent-filter element
       # @param [REXML::Element] elem target element
       # @return [IntentFilter::Action, IntentFilter::Category, IntentFilter::Data]
@@ -180,6 +236,36 @@ module Android
         end
       end
       components
+    end
+
+    # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities in the apk
+    # @note return empty array when the manifest include no activities
+    def activities
+      activities = []
+      unless @doc.elements['/manifest/application'].nil?
+        @doc.elements['/manifest/application'].each do |elem|
+          next unless Activity.valid?(elem)
+
+          activities << (elem.name == 'activity-alias' ? ActivityAlias.new(elem) : Activity.new(elem))
+        end
+      end
+      activities
+    end
+
+    # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
+    # @note return empty array when the manifest include no activities
+    def launcher_activities
+      launcher_activities = []
+      activities.each do |a|
+        a.intent_filters.each do |filters|
+          filters.each do |filter|
+            next unless filter.type == 'category'
+
+            launcher_activities << a if filter.name == 'android.intent.category.LAUNCHER'
+          end
+        end
+      end
+      launcher_activities
     end
 
     # application package name
