@@ -240,7 +240,7 @@ module Android
 
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities in the apk
     # @note return empty array when the manifest include no activities
-    def get_activities
+    def activities
       activities = []
       unless @doc.elements['/manifest/application'].nil?
         @doc.elements['/manifest/application'].each do |elem|
@@ -254,9 +254,9 @@ module Android
 
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
     # @note return empty array when the manifest include no activities
-    def get_launcher_activities
+    def launcher_activities
       launcher_activities = []
-      get_activities.each do |a|
+      activities.each do |a|
         a.intent_filters.each do |filters|
           filters.each do |filter|
             next unless filter.type == 'category'
