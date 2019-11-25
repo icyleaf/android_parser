@@ -72,6 +72,14 @@ module Android
       rescue => e
         false
       end
+
+      # @return whether this instance is the default main launcher activity.
+      def default_activity?
+        intent_filters.any? do |intent_filter|
+          intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.LAUNCHER' } &&
+          intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.DEFAULT' }
+        end
+      end
     end
 
     class ActivityAlias < Activity
