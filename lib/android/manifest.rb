@@ -74,7 +74,7 @@ module Android
       end
 
       # @return whether this instance is the default main launcher activity.
-      def default_activity?
+      def default_launcher_activity?
         intent_filters.any? do |intent_filter|
           intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.LAUNCHER' } &&
           intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.DEFAULT' }
