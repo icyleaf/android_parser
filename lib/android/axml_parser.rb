@@ -166,10 +166,32 @@ module Android
       return key, value
     end
 
-    # find the most recently declared namespace prefix for a URI
+    # find the first declared namespace prefix for a URI
     def get_namespace_prefix(ns_uri)
-      most_recent_matching_namespace = @namespaces.reverse.find { |ns| ns[:uri] == ns_uri }
-      most_recent_matching_namespace[:prefix]
+      # a namespace might be given as a URI or as a reference to a previously defined namespace.
+      # E.g. like this:
+      # <tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+      #   <tag2 xmlns:n0="android" />
+      # </tag1>
+
+      # Walk recursively through the namespaces to
+      # transitively resolve URIs that just pointed to previous namespace prefixes
+      current_uri = ns_uri
+      @namespaces.reverse.each do |ns|
+        if ns[:prefix] == current_uri
+          # we found a previous namespace declaration that was referenced to by
+          # the current_uri. Proceed with this namespace’s URI and try to see if this
+          # is also just a reference to a previous namespace
+          current_uri = ns[:uri]
+        end
+      end
+
+      # current_uri now contains the URI of the topmost namespace declaration.
+      # We’ll take the prefix of this and return it.
+      @namespaces.reverse.each do |ns|
+        return ns[:prefix] if ns[:uri] == current_uri
+      end
+      raise "Could not resolve URI #{ns_uri} to a namespace prefix"
     end
 
     def current_nesting_level

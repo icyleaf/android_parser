@@ -10,6 +10,10 @@ describe Android::AXMLParser do
   let(:bin_xml_with_namespaces){ File.open(bin_xml_with_namespaces_path, 'rb') {|f| f.read } }
   let(:axmlparser_with_namespaces){ Android::AXMLParser.new(bin_xml_with_namespaces) }
 
+  let(:bin_xml_with_transitive_namespace_declaration_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest_with_transitive_namespace_declaration.xml') }
+  let(:bin_xml_with_transitive_namespace_declaration){ File.open(bin_xml_with_transitive_namespace_declaration_path, 'rb') {|f| f.read } }
+  let(:axmlparser_with_transitive_namespace_declaration){ Android::AXMLParser.new(bin_xml_with_transitive_namespace_declaration) }
+
   describe "#parse" do
 
     subject { axmlparser.parse }
@@ -40,6 +44,15 @@ describe Android::AXMLParser do
     end
   end
 
+  describe "#parse with transitive namespace declarations" do
+    subject { axmlparser_with_transitive_namespace_declaration.parse }
+    context 'with sample_AndroidManifest_with_namespaces.xml' do
+      it { should be_instance_of(REXML::Document) }
+      specify 'it should parse the full manifest even if there are namespaces' do
+        subject.get_elements('/manifest/uses-permission/thisisjustatest').last.attributes['android:name'].should eq('this is a name')
+      end
+    end
+  end
 
   describe "#strings" do
     context 'with sample_AndroidManifest.xml' do
