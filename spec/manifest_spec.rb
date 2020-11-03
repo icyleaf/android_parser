@@ -217,5 +217,25 @@ EOS
         subject.should == raw_xml
       end
     end
+    describe "#launcher_activities" do
+      subject { manifest.launcher_activities }
+      it "should return the correct launcher activity" do
+        subject.first.name.should == "example.app.sample.SampleActivity"
+      end
+    end
+  end
+
+  context "with sample_AndroidManifest_with_redundant_intentfilters.xml" do
+    let(:bin_xml_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest_with_redundant_intentfilters.xml') }
+    let(:bin_xml){ File.open(bin_xml_path, 'rb') {|f| f.read } }
+    let(:manifest){ Android::Manifest.new(bin_xml) }
+
+    describe "#launcher_activities" do
+      subject { manifest.launcher_activities }
+      it "should return only one activity even if it has multiple redundant launcher intent filters" do
+        subject.length.should == 1
+        subject.first.name.should == "com.example.MainActivity"
+      end
+    end
   end
 end

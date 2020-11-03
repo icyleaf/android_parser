@@ -73,11 +73,17 @@ module Android
         false
       end
 
+      def launcher_activity?
+        intent_filters.flatten.any? do |filter|
+          filter.type == 'category' && filter.name == 'android.intent.category.LAUNCHER'
+        end
+      end
+
       # @return whether this instance is the default main launcher activity.
       def default_launcher_activity?
         intent_filters.any? do |intent_filter|
           intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.LAUNCHER' } &&
-          intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.DEFAULT' }
+            intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.DEFAULT' }
         end
       end
     end
@@ -263,17 +269,7 @@ module Android
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
     # @note return empty array when the manifest include no activities
     def launcher_activities
-      launcher_activities = []
-      activities.each do |a|
-        a.intent_filters.each do |filters|
-          filters.each do |filter|
-            next unless filter.type == 'category'
-
-            launcher_activities << a if filter.name == 'android.intent.category.LAUNCHER'
-          end
-        end
-      end
-      launcher_activities
+      activities.select(&:launcher_activity?)
     end
 
     # application package name
