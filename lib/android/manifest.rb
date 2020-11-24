@@ -9,7 +9,7 @@ module Android
     # <activity>, <service>, <receiver> or <provider> element in <application> element of the manifest file.
     class Component
       # component types
-      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider']
+      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider', 'application']
 
       # the element is valid Component element or not
       # @param [REXML::Element] elem xml element
@@ -109,7 +109,11 @@ module Android
     class Provider < Component
     end
 
-
+    class Application < Component
+      def self.valid?(elem)
+        elem&.name == 'application'
+      end
+    end
 
     # intent-filter element in components
     module IntentFilter
@@ -238,6 +242,13 @@ module Android
         perms << elem.attributes['name']
       end
       perms.uniq
+    end
+
+    # Returns the manifest's application element or nil, if there isn't any.
+    # @return [Android::Manifest::Application] the manifest's application element
+    def application
+      element = @doc.elements['//application']
+      Application.new(element) if Application.valid?(element)
     end
 
     # @return [Array<Android::Manifest::Component>] all components in apk
