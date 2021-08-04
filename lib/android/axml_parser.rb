@@ -7,9 +7,9 @@ module Android
   # @see https://android.googlesource.com/platform/frameworks/base.git Android OS frameworks source
   # @note
   #   refer to Android OS framework code:
-  #   
+  #
   #   /frameworks/base/include/androidfw/ResourceTypes.h,
-  #   
+  #
   #   /frameworks/base/libs/androidfw/ResourceTypes.cpp
   class AXMLParser
     def self.axml?(data)
@@ -43,7 +43,7 @@ module Android
     VAL_TYPE_INT_COLOR_RGB4    =31
 
     # @return [Array<String>] strings defined in axml
-    attr_reader :strings
+    attr_reader :strings, :metadata
 
     # @param [String] axml binary xml data
     def initialize(axml)
@@ -62,6 +62,7 @@ module Android
 
       @parents = [@doc]
       @namespaces = []
+      @metadata = []
       parse_strings
       parse_tags
       @doc
@@ -92,7 +93,6 @@ module Android
 
     # parse tag
     def parse_tags
-
       # skip until first TAG_START_NAMESPACE
       pos = @xml_offset
       pos += 4 until (word(pos) == TAG_START_NAMESPACE)
@@ -114,6 +114,11 @@ module Android
           end
           elem = REXML::Element.new(prefix + @strings[name_id])
 
+          meta_tag = if @strings[name_id] == 'meta-data'
+                        @metadata << {}
+                        true
+                      end
+
           # If this element is a direct descendent of a namespace declaration
           # we add the namespace definition as an attribute.
           if @namespaces.last[:nesting_level] == current_nesting_level
@@ -122,7 +127,17 @@ module Android
           #puts "start tag %d(%#x): #{@strings[name_id]} attrs:#{num_attrs}" % [last_pos, last_pos]
           @parents.last.add_element elem
           num_attrs.times do
-            key, val = parse_attribute
+            key, val, type = parse_attribute
+
+            if meta_tag
+              @metadata.last[key] = {
+                value: val,
+                position: @io.pos - 4,
+                val_str_id: @io.pos - 12,
+                is_string: type == VAL_TYPE_STRING
+              }
+            end
+
             if val.is_a?(String)
               # drop invalid chars that would be rejected by REXML from string
               val = val.scan(REXML::Text::VALID_XML_CHARS).join
@@ -163,7 +178,7 @@ module Android
         key = "#{prefix}:#{key}"
       end
       value = convert_value(val_str_id, flags, val)
-      return key, value
+      return key, value, (flags >> 24)
     end
 
     # find the first declared namespace prefix for a URI

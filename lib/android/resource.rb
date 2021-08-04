@@ -8,6 +8,7 @@ module Android
   class Resource
     class Chunk
       def initialize(data, offset)
+        data.force_encoding(Encoding::ASCII_8BIT)
         @data = data
         @offset = offset
         exec_parse
@@ -51,10 +52,31 @@ module Android
     end
 
     class ResStringPool < ChunkHeader
+      class UnsupportedStringFormatError < StandardError; end
+
       SORTED_FLAG = 1 << 0
       UTF8_FLAG = 1 << 8
 
       attr_reader :strings
+
+      def add_string(str)
+        raise UnsupportedStringFormatError, 'Adding strings in UTF-8 format is not supported yet' if utf8_string_format?
+
+        @data_io = StringIO.new(@data, 'r+b')
+
+        increment_string_count
+        bytes_added = insert_string(str)
+        increment_string_start_offset
+        update_chunk_size(bytes_added)
+
+        @data_io.close
+        [@string_count - 1, bytes_added]
+      end
+
+      def utf8_string_format?
+        (@flags & UTF8_FLAG != 0)
+      end
+
       private
       def parse
         super
@@ -66,7 +88,7 @@ module Android
         @strings = []
         @string_count.times do
           offset = @offset + @string_start + read_int32
-          if (@flags & UTF8_FLAG != 0)
+          if utf8_string_format?
             # read length twice(utf16 length and utf8 length)
             #  const uint16_t* ResStringPool::stringAt(size_t idx, size_t* u16len) const
             u16len, o16 = ResStringPool.utf8_len(@data[offset, 2])
@@ -80,6 +102,69 @@ module Android
             @strings << str.encode(Encoding::UTF_8)
           end
         end
+      end
+
+      def increment_string_count
+        string_count_offset = @offset + 8
+        @string_count = @data[string_count_offset, 4].unpack1('V') + 1
+        @data_io.pos = string_count_offset
+        @data_io.write([@string_count].pack('V'))
+      end
+
+      # Inserts the string into the string data section and updates the string index.
+      # @return [Integer] number of bytes added to the string pool chunk
+      def insert_string(str)
+        bytes = str.codepoints << 0
+        # To keep the alignment we need to pad the new string we're inserting.
+        # In total, we're adding the string bytes + 2 bytes string length + 4 bytes string index.
+        padding = (4 - (bytes.size * 2 + 2 + 4) % 4) % 4
+        padding_bytes = [0] * padding
+        next_string_offset = new_string_offset
+
+        string_bytes = ResStringPool.utf16_str_len(str.codepoints) + bytes.pack('v*') + padding_bytes.pack('C*')
+
+        # Write string data into the string data section.
+        @data.insert(next_string_offset, string_bytes)
+        # Insert new string index entry. The offset needs to be relative to the start of the string data section.
+        @data.insert(last_string_index_offset + 4, [next_string_offset - (@offset + @string_start)].pack('V'))
+
+        # We added the bytes of the string itself + a new string index entry
+        string_bytes.size + 4
+      end
+
+      def last_string_index_offset
+        # The last entry in the string index section is the 4 bytes right before the start
+        # of the string-data section (string_start).
+        @offset + @string_start - 4
+      end
+
+      # Calculates the offset at which to insert new string data.
+      # @return [Integer] offset of the end of the current string data section
+      def new_string_offset
+        last_string_index = @data[last_string_index_offset, 4].unpack1('V')
+        offset = @offset + @string_start + last_string_index
+
+        u16len, o16 = ResStringPool.utf16_len(@data[offset, 4])
+        # To insert a new string at the end of the string section, we need to start at the current
+        # last string entry, and add o16 (number of length bytes), u16len * 2(number of string bytes),
+        # and 2 bytes for the terminating null-bytes.
+        offset + o16 + u16len * 2 + 2
+      end
+
+      def increment_string_start_offset
+        string_start_offset = @offset + 20
+        @string_start = @data[string_start_offset, 4].unpack1('V') + 4
+
+        @data_io.pos = string_start_offset
+        @data_io.write([@string_start].pack('V'))
+      end
+
+      def update_chunk_size(bytes_added)
+        size_offset = @offset + 4
+        @size = @data[size_offset, 4].unpack1('V') + bytes_added
+
+        @data_io.pos = size_offset
+        @data_io.write([@size].pack('V'))
       end
 
       # @note refer to /frameworks/base/libs/androidfw/ResourceTypes.cpp
@@ -105,6 +190,10 @@ module Android
         else
           return first, 2
         end
+      end
+
+      def self.utf16_str_len(str)
+        [str.size].pack('v')
       end
     end
 
@@ -428,7 +517,7 @@ module Android
       end
       def parse
         @name = read_int32
-       @val = ResValue.new(@data, current_position)
+        @val = ResValue.new(@data, current_position)
       end
     end
 
@@ -498,7 +587,9 @@ module Android
     def first_pkg
       @packages.first[1]
     end
+
     private
+
     def parse
       offset = 0
 
