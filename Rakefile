@@ -10,20 +10,21 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
+require 'bundler/gem_tasks'
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "ruby_apk"
-  gem.homepage = "https://github.com/SecureBrain/ruby_apk/"
-  gem.license = "MIT"
-  gem.summary = %Q{static analysis tool for android apk}
-  gem.description = %Q{static analysis tool for android apk}
-  gem.email = "info@securebrain.co.jp"
-  gem.authors = ["SecureBrain"]
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
+# require 'jeweler'
+# Jeweler::Tasks.new do |gem|
+#   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
+#   gem.name = "android_parser"
+#   gem.homepage = "https://github.com/icyleaf/ruby_apk"
+#   gem.license = "MIT"
+#   gem.summary = %Q{static analysis tool for android apk}
+#   gem.description = %Q{static analysis tool for android apk}
+#   gem.email = "info@securebrain.co.jp"
+#   gem.authors = ["SecureBrain"]
+#   # dependencies defined in Gemfile
+# end
+# Jeweler::RubygemsDotOrgTasks.new
 
 require 'rspec/core'
 require 'rspec/core/rake_task'
@@ -34,10 +35,10 @@ end
 
 task :default => :spec
 
-require 'yard'
-require 'yard/rake/yardoc_task'
-YARD::Rake::YardocTask.new do |t|
-  t.files = ['lib/**/*.rb']
-  t.options = []
-  t.options << '--debug' << '--verbose' if $trace
-end
+# require 'yard'
+# require 'yard/rake/yardoc_task'
+# YARD::Rake::YardocTask.new do |t|
+#   t.files = ['lib/**/*.rb']
+#   t.options = []
+#   t.options << '--debug' << '--verbose' if $trace
+# end

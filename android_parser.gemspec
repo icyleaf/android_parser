@@ -6,7 +6,7 @@
 
 Gem::Specification.new do |s|
   s.name = "android_parser".freeze
-  s.version = "2.3.0"
+  s.version = "2.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
@@ -19,52 +19,7 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.md"
   ]
-  s.files = [
-    ".travis.yml",
-    "CHANGELOG.md",
-    "Gemfile",
-    "Gemfile.lock",
-    "LICENSE.txt",
-    "README.md",
-    "Rakefile",
-    "VERSION",
-    "lib/android/apk.rb",
-    "lib/android/axml_parser.rb",
-    "lib/android/axml_writer.rb",
-    "lib/android/dex.rb",
-    "lib/android/dex/access_flag.rb",
-    "lib/android/dex/dex_object.rb",
-    "lib/android/dex/info.rb",
-    "lib/android/dex/utils.rb",
-    "lib/android/layout.rb",
-    "lib/android/manifest.rb",
-    "lib/android/resource.rb",
-    "lib/android/utils.rb",
-    "lib/ruby_apk.rb",
-    "ruby_apk.gemspec",
-    "spec/apk_spec.rb",
-    "spec/axml_parser_spec.rb",
-    "spec/data/sample.apk",
-    "spec/data/sample_AndroidManifest.xml",
-    "spec/data/sample_AndroidManifest_with_namespaces.xml",
-    "spec/data/sample_AndroidManifest_with_redundant_intentfilters.xml",
-    "spec/data/sample_AndroidManifest_with_transitive_namespace_declaration.xml",
-    "spec/data/sample_classes.dex",
-    "spec/data/sample_resources.arsc",
-    "spec/data/sample_resources_utf16.arsc",
-    "spec/data/str_resources.arsc",
-    "spec/dex/access_flag_spec.rb",
-    "spec/dex/dex_object_spec.rb",
-    "spec/dex/info_spec.rb",
-    "spec/dex/utils_spec.rb",
-    "spec/dex_spec.rb",
-    "spec/layout_spec.rb",
-    "spec/manifest_spec.rb",
-    "spec/resource_spec.rb",
-    "spec/ruby_apk_spec.rb",
-    "spec/spec_helper.rb",
-    "spec/utils_spec.rb"
-  ]
+  s.files    = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   s.homepage = "https://github.com/SecureBrain/ruby_apk/".freeze
   s.licenses = ["MIT".freeze]
   s.rubygems_version = "3.0.3".freeze
