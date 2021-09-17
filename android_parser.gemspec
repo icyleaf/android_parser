@@ -6,7 +6,7 @@
 
 Gem::Specification.new do |s|
   s.name = "android_parser".freeze
-  s.version = "2.4.0"
+  s.version = "2.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
     "README.md"
   ]
   s.files    = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  s.homepage = "https://github.com/SecureBrain/ruby_apk/".freeze
+  s.homepage = "https://github.com/icyleaf/ruby_apk".freeze
   s.licenses = ["MIT".freeze]
   s.rubygems_version = "3.0.3".freeze
   s.summary = "static analysis tool for android apk".freeze
