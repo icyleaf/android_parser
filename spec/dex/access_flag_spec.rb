@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+# frozen_string_literal: true
 
 describe Android::Dex::AccessFlag do
   let(:flag) { 0x01 }

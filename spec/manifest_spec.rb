@@ -1,17 +1,20 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+# frozen_string_literal: true
 
 describe Android::Manifest do
   describe Android::Manifest::Component do
     describe "self.valid?" do
-      let(:elem) { REXML::Element.new('service') }
       subject { Android::Manifest::Component.valid?(elem) }
+
       context "with valid component element" do
+        let(:elem) { REXML::Element.new('service') }
         it { should be_truthy }
       end
+
       context "with invalid component element" do
         let(:elem) { REXML::Element.new('invalid-name') }
         it { should be_falsey }
       end
+
       context "when some exception occurs in REXML::Element object" do
         let(:elem) {
           elem = double(REXML::Element)
@@ -24,12 +27,13 @@ describe Android::Manifest do
     describe '#metas' do
       subject { Android::Manifest::Component.new(elem).metas }
       context 'with valid component element has 2 meta elements' do
-        let(:elem) { 
-          elem = REXML::Element.new('service') 
+        let(:elem) {
+          elem = REXML::Element.new('service')
           elem << REXML::Element.new('meta-data')
           elem << REXML::Element.new('meta-data')
           elem
         }
+
         it { should have(2).item }
       end
     end
@@ -53,23 +57,46 @@ describe Android::Manifest do
   end
 
   describe Android::Manifest::IntentFilter do
-    describe '.parse' do
-      subject { Android::Manifest::IntentFilter.parse(elem) }
+    describe '.new' do
       context 'assings "action" element' do
-        let(:elem) { REXML::Element.new('action') }
+        let(:elem) {
+          elem = REXML::Element.new('filter')
+          elem << REXML::Element.new('action')
+          elem
+        }
+        subject { Android::Manifest::IntentFilter.new(elem).actions.first }
         it { should be_instance_of Android::Manifest::IntentFilter::Action }
       end
+
       context 'assings "category" element' do
-        let(:elem) { REXML::Element.new('category') }
+        let(:elem) {
+          elem = REXML::Element.new('filter')
+          elem << REXML::Element.new('category')
+          elem
+        }
+        subject { Android::Manifest::IntentFilter.new(elem).categories.first }
+
         it { should be_instance_of Android::Manifest::IntentFilter::Category }
       end
+
       context 'assings "data" element' do
-        let(:elem) { REXML::Element.new('data') }
+        let(:elem) {
+          elem = REXML::Element.new('filter')
+          elem << REXML::Element.new('data')
+          elem
+        }
+        subject { Android::Manifest::IntentFilter.new(elem).data.first }
         it { should be_instance_of Android::Manifest::IntentFilter::Data }
       end
+
       context 'assings unknown element' do
-        let(:elem) { REXML::Element.new('unknown') }
-        it { should be_nil }
+        let(:elem) {
+          elem = REXML::Element.new('filter')
+          elem << REXML::Element.new('unknown')
+          elem
+        }
+        subject { Android::Manifest::IntentFilter.new(elem) }
+        it { should be_empty }
       end
     end
   end
@@ -82,7 +109,7 @@ describe Android::Manifest do
     let(:manifest) { Android::Manifest.new('mock data') }
 
     before do
-      parser = double(Android::AXMLParser, :parse => dummy_xml) 
+      parser = double(Android::AXMLParser, :parse => dummy_xml)
       Android::AXMLParser.stub(:new).and_return(parser)
     end
 
@@ -127,7 +154,7 @@ describe Android::Manifest do
       context "with no components" do
         it { should be_empty }
       end
-      context 'with text element in intent-filter element. (issue #3)' do 
+      context 'with text element in intent-filter element. (issue #3)' do
         before do
           app = REXML::Element.new('application')
           activity = REXML::Element.new('activity')

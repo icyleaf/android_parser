@@ -1,44 +1,10 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
-require 'rubygems'
-require 'bundler'
-begin
-  Bundler.setup(:default, :development)
-rescue Bundler::BundlerError => e
-  $stderr.puts e.message
-  $stderr.puts "Run `bundle install` to install missing gems"
-  exit e.status_code
-end
-require 'rake'
+$LOAD_PATH.unshift File.expand_path('lib', __dir__)
+require 'android_parser'
 require 'bundler/gem_tasks'
-
-# require 'jeweler'
-# Jeweler::Tasks.new do |gem|
-#   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-#   gem.name = "android_parser"
-#   gem.homepage = "https://github.com/icyleaf/ruby_apk"
-#   gem.license = "MIT"
-#   gem.summary = %Q{static analysis tool for android apk}
-#   gem.description = %Q{static analysis tool for android apk}
-#   gem.email = "info@securebrain.co.jp"
-#   gem.authors = ["SecureBrain"]
-#   # dependencies defined in Gemfile
-# end
-# Jeweler::RubygemsDotOrgTasks.new
-
-require 'rspec/core'
 require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |spec|
-  spec.pattern = FileList['spec/**/*_spec.rb']
-end
 
+RSpec::Core::RakeTask.new(:spec)
 
-task :default => :spec
-
-# require 'yard'
-# require 'yard/rake/yardoc_task'
-# YARD::Rake::YardocTask.new do |t|
-#   t.files = ['lib/**/*.rb']
-#   t.options = []
-#   t.options << '--debug' << '--verbose' if $trace
-# end
+task default: :spec

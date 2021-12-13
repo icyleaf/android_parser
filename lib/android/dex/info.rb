@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'dex_object'
 
 module Android
@@ -32,7 +34,7 @@ module Android
       end
       def super_class
         if @class_def[:superclass_idx] != NO_INDEX
-          @super_class = @dex.type_resolve(@class_def[:superclass_idx]) 
+          @super_class = @dex.type_resolve(@class_def[:superclass_idx])
         else
           nil
         end

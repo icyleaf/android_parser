@@ -1,5 +1,4 @@
-# encoding: utf-8
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+# frozen_string_literal: true
 
 describe Android::Resource do
   let(:res_data) { File.read(res_path) }
@@ -39,12 +38,12 @@ describe Android::Resource do
     end
     subject { Android::Resource::ChunkHeader.new(data, offset) }
     context 'with no offset' do
-      let(:data) { "\x14\x00\xF4\x00\xE8\x03\x00\x00" } # [20, 244, 1000].pack('vvV')
+      let(:data) { "\x14\x00\xF4\x00\xE8\x03\x00\x00".dup } # [20, 244, 1000].pack('vvV')
       let(:offset) { 0 }
       it_behaves_like 'a chunk header'
     end
     context 'with 10byte offset' do
-      let(:data) { "\x00"*10 + "\x14\x00\xF4\x00\xE8\x03\x00\x00" } # [20, 244, 1000].pack('vvV')
+      let(:data) { "\x00"*10 + "\x14\x00\xF4\x00\xE8\x03\x00\x00".dup } # [20, 244, 1000].pack('vvV')
       let(:offset) { 10 }
       it_behaves_like 'a chunk header'
     end
@@ -79,7 +78,7 @@ describe Android::Resource do
       context 'assigns xffff,xffff' do
         let(:data) { "\xff\xff\xff\xff" }
         it 'should eq 0x7fff 0xffff' do
-          should eq [0x7fffffff, 4] 
+          should eq [0x7fffffff, 4]
         end
       end
     end
@@ -143,7 +142,7 @@ describe Android::Resource do
             expect{ subject.find('@xxyyxxyy') }.to raise_error(ArgumentError)
           end
           it '"@0xff112233445566" should raise ArgumentError' do
-            expect{ subject.find('@0xff112233445566') }.to raise_error(ArgumentError) 
+            expect{ subject.find('@0xff112233445566') }.to raise_error(ArgumentError)
           end
         end
       end

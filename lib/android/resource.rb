@@ -239,6 +239,7 @@ module Android
 
       def res_types
       end
+
       def find_res_string(key, opts={})
         unless opts[:lang].nil?
           string = @res_strings_lang[opts[:lang]]

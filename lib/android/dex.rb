@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'dex/dex_object'
 require_relative 'dex/info'
 require_relative 'dex/access_flag'
@@ -36,7 +38,7 @@ module Android
 
 
     # @private
-    TYPE_DESCRIPTOR = { 
+    TYPE_DESCRIPTOR = {
       'V' => 'void',
       'Z' => 'boolean',
       'B' => 'byte',
