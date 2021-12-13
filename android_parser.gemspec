@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.version       = '2.5.0'
   spec.authors       = ['SecureBrain', 'icyleaf']
   spec.email         = ['info@securebrain.co.jp', 'icyleaf.cn@gmail.com']
-
+  spec.platform      = Gem::Platform::RUBY
   spec.summary       = 'Static analysis tool for android apk since 2021'
   spec.description   = 'Static analysis tool for android apk since 2021'
   spec.homepage      = 'https://github.com/icyleaf/android_parser'
@@ -21,6 +21,10 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.5'
 
   spec.add_dependency 'rubyzip', '>= 1.0', '< 3.0'
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0') then
+    spec.add_dependency 'rexml', '> 3.0'
+  end
 
   spec.add_development_dependency 'rspec-its', '>= 1.2.0'
   spec.add_development_dependency 'rspec-collection_matchers', '>= 1.1.0'
