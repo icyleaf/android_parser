@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Android
   class Dex
     class << self
       # parse uleb128(unsigned integer) data
       # @param [String] data target byte data
-      # @param [Integer] offset 
+      # @param [Integer] offset
       # @return [Integer, Integer] parsed value and parsed byte length
       # @see http://en.wikipedia.org/wiki/LEB128
       def uleb128(data, offset=0)
@@ -19,7 +21,7 @@ module Android
       end
       # parse uleb128 + 1 data
       # @param [String] data target byte data
-      # @param [Integer] offset 
+      # @param [Integer] offset
       # @return [Integer, Integer] parsed value and parsed byte length
       def uleb128p1(data, offset=0)
         ret, len = self.uleb128(data, offset)
@@ -27,7 +29,7 @@ module Android
       end
       # parse sleb128(signed integer) data
       # @param [String] data target byte data
-      # @param [Integer] offset 
+      # @param [Integer] offset
       # @return [Integer, Integer] parsed value and parsed byte length
       def sleb128(data, offset=0)
         result  = 0

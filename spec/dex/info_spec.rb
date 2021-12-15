@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+# frozen_string_literal: true
 
 shared_context 'with sample_classes.dex', with: :sample_dex do
   let(:dex_path){ File.expand_path(File.dirname(__FILE__) + '/../data/sample_classes.dex') }

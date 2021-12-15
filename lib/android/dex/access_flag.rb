@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module Android
   class Dex
@@ -39,7 +40,7 @@ module Android
         ACCESSORS.select{|e| ((e[:value] & @flag) != 0) }.map{|e| e[:name] }.join(' ')
       end
     end
-   
+
     # access flag object for method in dex
     class MethodAccessFlag < AccessFlag
       ACCESSORS = [

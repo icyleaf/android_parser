@@ -1,5 +1,6 @@
-# encoding: utf-8
-require 'ruby_apk'
+# frozen_string_literal: true
+
+require 'android_parser'
 require 'rexml/document'
 
 module Android
@@ -8,7 +9,7 @@ module Android
     def self.collect_layouts(apk)
       targets = apk.find {|name, data| name =~ /^res\/layout\/*/ }
       ret = {}
-      targets.each do |path| 
+      targets.each do |path|
         data = apk.file(path)
         data.force_encoding(Encoding::ASCII_8BIT)
         ret[path] = nil
@@ -34,7 +35,7 @@ module Android
 
     # @return [String] xml string
     def to_xml(indent=4)
-      xml = ''
+      xml = ''.dup
       formatter = REXML::Formatters::Pretty.new(indent)
       formatter.write(@doc.root, xml)
       xml
