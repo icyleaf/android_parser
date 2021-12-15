@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require 'rexml/document'
 require 'stringio'
-
 
 module Android
   # binary AXML parser
@@ -12,8 +13,10 @@ module Android
   #
   #   /frameworks/base/libs/androidfw/ResourceTypes.cpp
   class AXMLParser
+    HEADER = "\x03\x00\x08\x00"
+
     def self.axml?(data)
-      (data[0..3] == "\x03\x00\x08\x00")
+      (data[0..3] == HEADER)
     end
 
     # axml parse error

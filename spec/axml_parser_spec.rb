@@ -1,5 +1,4 @@
-# encoding: utf-8
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+# frozen_string_literal: true
 
 describe Android::AXMLParser do
   let(:bin_xml_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest.xml') }
@@ -77,7 +76,7 @@ describe Android::AXMLParser do
     subject { axmlparser.convert_value(str_id, flags, val) }
     context 'when parsing boolean attribute' do
       let(:str_id) { 0xFFFFFFFF }
-      let(:flags) { 0x12000008 } 
+      let(:flags) { 0x12000008 }
       context 'and value is 0x01' do
         let(:val) { 0x01 }
         it { should be_truthy }

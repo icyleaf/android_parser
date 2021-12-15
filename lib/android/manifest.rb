@@ -1,4 +1,5 @@
 require 'rexml/document'
+require 'uri'
 
 module Android
   # parsed AndroidManifest.xml class
@@ -33,33 +34,46 @@ module Android
       # @return [REXML::Element]
       attr_reader :elem
 
-
       # @param [REXML::Element] elem target element
       # @raise [ArgumentError] when elem is invalid.
       def initialize(elem)
         raise ArgumentError unless Component.valid?(elem)
+
         @elem = elem
         @type = elem.name
         @name = elem.attributes['name']
         @icon_id = elem.attributes['icon']
 
-        @intent_filters = []
-        unless elem.elements['intent-filter'].nil?
-          elem.each_element('intent-filter') do |filters|
-            intent_filters = []
-            filters.elements.each do |filter|
-              next unless IntentFilter.valid?(filter)
+        @intent_filters = parse_intent_filters
+        @metas = parse_metas
+      end
 
-              intent_filters << IntentFilter.parse(filter)
-            end
-            @intent_filters << intent_filters
-          end
+      private
+
+      def parse_intent_filters
+        intent_filters = []
+        return intent_filters if @elem.elements['intent-filter'].nil?
+
+        @elem.each_element('intent-filter') do |filter|
+          next if filter&.elements&.empty?
+          next unless IntentFilter.valid?(filter)
+
+          intent_filter = IntentFilter.new(filter)
+          intent_filters << intent_filter unless intent_filter.empty?
         end
 
-        @metas = []
-        elem.each_element('meta-data') do |e|
-          @metas << Meta.new(e)
+        intent_filters
+      end
+
+      def parse_metas
+        metas = []
+        return metas if @elem.elements['meta-data'].nil?
+
+        @elem.each_element('meta-data') do |e|
+          metas << Meta.new(e)
         end
+
+        metas
       end
     end
 
@@ -73,17 +87,18 @@ module Android
         false
       end
 
+      # @return whether this instance is the launcher activity.
       def launcher_activity?
-        intent_filters.flatten.any? do |filter|
-          filter.type == 'category' && filter.name == 'android.intent.category.LAUNCHER'
+        intent_filters.any? do |intent_filter|
+          intent_filter.exist?('android.intent.category.LAUNCHER')
         end
       end
 
       # @return whether this instance is the default main launcher activity.
       def default_launcher_activity?
         intent_filters.any? do |intent_filter|
-          intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.LAUNCHER' } &&
-            intent_filter.any? { |f| f.type == 'category' && f.name == 'android.intent.category.DEFAULT' }
+          intent_filter.exist?('android.intent.category.LAUNCHER') &&
+          intent_filter.exist?('android.intent.category.DEFAULT')
         end
       end
     end
@@ -116,41 +131,129 @@ module Android
     end
 
     # intent-filter element in components
-    module IntentFilter
-      # filter types
+    class IntentFilter
+      # filter types (action is required, category and data are optional)
       TYPES = ['action', 'category', 'data']
+
+      # browsable of category
+      CATEGORY_BROWSABLE = 'android.intent.category.BROWSABLE'
 
       # the element is valid IntentFilter element or not
       # @param [REXML::Element] elem xml element
       # @return [Boolean]
-      def self.valid?(elem)
-        TYPES.include?(elem.name.downcase)
+      def self.valid?(filter)
+        filter&.elements&.any? do |elem|
+          TYPES.include?(elem&.name&.downcase)
+        end
       rescue => e
         false
       end
 
-      # parse inside of intent-filter element
-      # @param [REXML::Element] elem target element
-      # @return [IntentFilter::Action, IntentFilter::Category, IntentFilter::Data]
-      #    intent-filter element
-      def self.parse(elem)
-        case elem.name
-        when 'action'
-          Action.new(elem)
-        when 'category'
-          Category.new(elem)
-        when 'data'
-          Data.new(elem)
-        else
-          nil
+      # @return [IntentFilter::Action] intent-filter actions
+      attr_reader :actions
+      # @return [IntentFilter::Category] intent-filter categories
+      attr_reader :categories
+      # @return [IntentFilter::Data] intent-filter data
+      attr_reader :data
+      # @return [IntentFilter::Data] intent-filter data
+      attr_reader :activity
+
+      def initialize(filter)
+        @activity = filter.parent
+        @actions = []
+        @categories = []
+        @data = []
+
+        filter.elements.each do |element|
+          type = element.name.downcase
+          next unless TYPES.include?(type)
+
+          case type
+          when 'action'
+            @actions << Action.new(element)
+          when 'category'
+            @categories << Category.new(element)
+          when 'data'
+            @data << Data.new(element)
+          end
         end
+      end
+
+      # Returns true if self contains no [IntentFilter::Action] elements.
+      # @return [Boolean]
+      def empty?
+        @actions.empty?
+      end
+
+      def exist?(name, type: nil)
+        if type.to_s.empty? && !name.start_with?('android.intent.')
+          raise 'Fill type or use correct name'
+        end
+
+        type ||= name.split('.')[2]
+        raise 'Not found type' unless TYPES.include?(type)
+
+        method_name = case type
+                      when 'action'
+                        :actions
+                      when 'category'
+                        :categories
+                      when 'data'
+                        :data
+                      end
+
+        values = send(method_name).select { |e| e.name == name }
+        values.empty? ? false : values #(values.size == 1 ? values.first : values)
+      end
+
+      # @return [Array<String>] all data elements
+      # @note return empty array when the manifest include no http or https scheme of data
+      # @since 2.5.0
+      def deep_links
+        return unless deep_links?
+
+        data.select {|d| !d.host.nil?  }
+            .map { |d| d.host }
+            .uniq
+      end
+
+      # the deep links exists with http or https in data element or not
+      # @return [Boolean]
+      # @since 2.5.0
+      def deep_links?
+        browsable? && data.any? { |d| ['http', 'https'].include?(d.scheme) }
+      end
+
+      # @return [Array<String>] all data elements
+      # @note return empty array when the manifest not include http or https scheme(s) of data
+      # @since 2.5.0
+      def schemes
+        return unless schemes?
+
+        data.select {|d| !d.scheme.nil? && !['http', 'https'].include?(d.scheme) }
+            .map { |d| d.scheme }
+            .uniq
+      end
+
+      # the deep links exists with non-http or non-https in data element or not
+      # @return [Boolean]
+      # @since 2.5.0
+      def schemes?
+        browsable? && data.any? { |d| !['http', 'https'].include?(d.scheme) }
+      end
+
+      # the browsable category vaild or not
+      # @return [Boolean]
+      # @since 2.5.0
+      def browsable?
+        exist?(CATEGORY_BROWSABLE)
       end
 
       # intent-filter action class
       class Action
-      # @return [String] action name of intent-filter
+        # @return [String] action name of intent-filter
         attr_reader :name
-      # @return [String] action type of intent-filter
+        # @return [String] action type of intent-filter
         attr_reader :type
 
         def initialize(elem)
@@ -161,9 +264,9 @@ module Android
 
       # intent-filter category class
       class Category
-      # @return [String] category name of intent-filter
+        # @return [String] category name of intent-filter
         attr_reader :name
-      # @return [String] category type of intent-filter
+        # @return [String] category type of intent-filter
         attr_reader :type
 
         def initialize(elem)
@@ -237,11 +340,15 @@ module Android
     # @return [Array<String>] permission names
     # @note return empty array when the manifest includes no use-parmission element
     def use_permissions
-      perms = []
-      @doc.each_element('/manifest/uses-permission') do |elem|
-        perms << elem.attributes['name']
-      end
-      perms.uniq
+      manifest_values('/manifest/uses-permission')
+    end
+
+    # used features array
+    # @return [Array<String>] features names
+    # @note return empty array when the manifest includes no use-features element
+    # @since 2.5.0
+    def use_features
+      manifest_values('/manifest/uses-feature')
     end
 
     # Returns the manifest's application element or nil, if there isn't any.
@@ -275,6 +382,45 @@ module Android
         end
       end
       activities
+    end
+
+    # @return [Array<Android::Manifest::Component>] all services in the apk
+    # @note return empty array when the manifest include no services
+    # @since 2.5.0
+    def services
+      components.select { |c| c.type == 'service' }
+    end
+
+    # @return [Array<String>] all deep link host and schemes in intent filters
+    # @note return empty array when the manifest include no http or https scheme of data
+    # @since 2.5.0
+    def deep_links
+      activities.each_with_object([]) do |activity, obj|
+        intent_filters = activity.intent_filters
+        next if intent_filters.empty?
+
+        intent_filters.each do |filter|
+          next unless filter.deep_links?
+
+          obj << filter.deep_links
+        end
+      end.flatten.uniq
+    end
+
+    # @return [Array<String>] all schemes in intent filters
+    # @note return empty array when the manifest not include http or https scheme(s) of data
+    # @since 2.5.0
+    def schemes
+      activities.each_with_object([]) do |activity, obj|
+        intent_filters = activity.intent_filters
+        next if intent_filters.empty?
+
+        intent_filters.each do |filter|
+          next unless filter.schemes?
+
+          obj << filter.schemes
+        end
+      end.flatten.uniq
     end
 
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
@@ -311,7 +457,17 @@ module Android
 
     # @return [Integer] minSdkVersion in uses element
     def min_sdk_ver
-      @doc.elements['/manifest/uses-sdk'].attributes['minSdkVersion'].to_i
+      @doc.elements['/manifest/uses-sdk']
+          .attributes['minSdkVersion']
+          .to_i
+    end
+
+    # @return [Integer] targetSdkVersion in uses element
+    # @since 2.5.0
+    def target_sdk_version
+      @doc.elements['/manifest/uses-sdk']
+          .attributes['targetSdkVersion']
+          .to_i
     end
 
     # application label
@@ -324,7 +480,7 @@ module Android
       if label.nil?
         # application element has no label attributes.
         # so looking for activites that has label attribute.
-        activities = @doc.elements['/manifest/application'].find{|e| e.name == 'activity' && !e.attributes['label'].nil? }
+        activities = @doc.elements['/manifest/application'].find{ |e| e.name == 'activity' && !e.attributes['label'].nil? }
         label = activities.nil? ? nil : activities.first.attributes['label']
       end
       unless @rsc.nil?
@@ -345,6 +501,16 @@ module Android
       formatter = REXML::Formatters::Pretty.new(indent)
       formatter.write(@doc.root, xml)
       xml
+    end
+
+    private
+
+    def manifest_values(path, key = 'name')
+      values = []
+      @doc.each_element(path) do |elem|
+        values << elem.attributes[key]
+      end
+      values.uniq
     end
   end
 end

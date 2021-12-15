@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module Android
   class Dex
@@ -16,7 +17,7 @@ module Android
         parse()
         @size = @parsing_off
       end
- 
+
       # returns symbol keys
       # @return [Array<Symbol>] header key
       def symbols
@@ -31,7 +32,7 @@ module Android
 
       # @return [String]
       def inspect
-        str = "<#{self.class}\n"
+        str = "<#{self.class}\n".dup
         @params.each  do |key,val|
           str.concat "    #{key}: #{val}\n"
         end
@@ -82,7 +83,7 @@ module Android
         value
       end
       # read various values from data buffer as array
-      # @param [Symbol] type 
+      # @param [Symbol] type
       # @param [Integer] size num of data
       # @return [Array] value array
       def read_value_array(type, size)
@@ -263,7 +264,7 @@ module Android
         # @return bytes
         # @note this method for DexObject#read_class_array (private method)
         def self.size
-          2 * 2 + 4 
+          2 * 2 + 4
         end
         private
         def parse
@@ -280,7 +281,7 @@ module Android
         # @return bytes
         # @note this method for DexObject#read_class_array (private method)
         def self.size
-          2 * 2 + 4 
+          2 * 2 + 4
         end
         def parse
           @params[:class_idx] = read_value(:ushort)

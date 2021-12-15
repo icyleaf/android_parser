@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+# frozen_string_literal: true
 
 describe Android::Utils do
   let(:sample_apk_path) { File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }

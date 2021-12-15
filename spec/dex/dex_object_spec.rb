@@ -1,9 +1,9 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+# frozen_string_literal: true
 
 describe Android::Dex do
   describe Android::Dex::DexObject::Header do
     let(:header_sample) {
-      sample = 
+      sample =
         "\x64\x65\x78\x0A\x30\x33\x35\x00\x3F\x14\x98\x2C\x25\x77\x9B\x8D" +
         "\x7C\xF0\x0B\xFA\x4D\x7B\x03\xAD\x4C\x15\xBC\x31\x4F\xD3\x4B\x71" +
         "\x58\x18\x00\x00\x70\x00\x00\x00\x78\x56\x34\x12\x00\x00\x00\x00" +
@@ -45,7 +45,7 @@ describe Android::Dex do
 
     describe "#[]" do
       subject { header }
-      it ':magic should be "dex\n035\0"' do 
+      it ':magic should be "dex\n035\0"' do
         subject[:magic].should ==  "dex\n035\0"
       end
       it ":checksum should be 748164159(this value depends on sample_classes.dex)" do
@@ -105,7 +105,7 @@ describe Android::Dex do
 
   describe Android::Dex::DexObject::StringDataItem do
     let(:string_data_item_sample) {
-      sample = "\x0b\x61\x62\x63\xc0\x80\xc8\x85\xe3\x81\x82\xe3\x81\x84\xe3\x81\x86\xed\xa0\x81\xed\xb0\x80\xc0\x80"
+      sample = "\x0b\x61\x62\x63\xc0\x80\xc8\x85\xe3\x81\x82\xe3\x81\x84\xe3\x81\x86\xed\xa0\x81\xed\xb0\x80\xc0\x80".dup
       sample.force_encoding(Encoding::ASCII_8BIT)
     }
     let(:string_data_item) { Android::Dex::DexObject::StringDataItem.new(string_data_item_sample, 0) }

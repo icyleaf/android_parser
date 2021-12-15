@@ -1,8 +1,10 @@
-require 'zip' # need rubyzip gem -> doc: http://rubyzip.sourceforge.net/
+# frozen_string_literal: true
+
 require 'digest/md5'
 require 'digest/sha1'
 require 'digest/sha2'
 require 'openssl'
+require 'zip'
 
 module Android
   class NotApkFileError < StandardError; end
@@ -37,12 +39,14 @@ module Android
     # @raise [Android::NotFoundError] path file does'nt exist
     # @raise [Android::NotApkFileError] path file is not Apk file.
     def initialize(filepath)
+      Zip.warn_invalid_date = false
+
       @path = filepath
       raise NotFoundError, "'#{filepath}'" unless File.exist? @path
       begin
         @zip = Zip::File.open(@path)
       rescue Zip::Error => e
-        raise NotApkFileError, e.message 
+        raise NotApkFileError, e.message
       end
 
       @bindata = File.open(@path, 'rb') {|f| f.read }
@@ -51,7 +55,7 @@ module Android
       begin
         @resource = Android::Resource.new(self.file(RESOURCE))
       rescue => e
-        $stderr.puts "failed to parse resource:#{e}"
+        $stderr.puts "failed to parse resource: #{e}"
         #$stderr.puts e.backtrace
       end
       begin
