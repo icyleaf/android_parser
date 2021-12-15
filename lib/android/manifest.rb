@@ -132,7 +132,7 @@ module Android
 
     # intent-filter element in components
     class IntentFilter
-      # filter types
+      # filter types (action is required, category and data are optional)
       TYPES = ['action', 'category', 'data']
 
       # browsable of category
@@ -142,8 +142,8 @@ module Android
       # @param [REXML::Element] elem xml element
       # @return [Boolean]
       def self.valid?(filter)
-        filter.elements.any? do |elem|
-          TYPES.include?(elem.name.downcase)
+        filter&.elements&.any? do |elem|
+          TYPES.include?(elem&.name&.downcase)
         end
       rescue => e
         false
@@ -179,12 +179,10 @@ module Android
         end
       end
 
-      # Returns true if self contains no elements.
+      # Returns true if self contains no [IntentFilter::Action] elements.
       # @return [Boolean]
       def empty?
-        @actions.empty? &&
-        @categories.empty? &&
-        @data.empty?
+        @actions.empty?
       end
 
       def exist?(name, type: nil)
@@ -208,18 +206,27 @@ module Android
         values.empty? ? false : values #(values.size == 1 ? values.first : values)
       end
 
+      # @return [Array<String>] all data elements
+      # @note return empty array when the manifest include no http or https scheme of data
+      # @since 2.5.0
       def deep_links
-        return unless deep_link?
+        return unless deep_links?
 
         data.select {|d| !d.host.nil?  }
             .map { |d| d.host }
             .uniq
       end
 
-      def deep_link?
+      # the deep links exists with http or https in data element or not
+      # @return [Boolean]
+      # @since 2.5.0
+      def deep_links?
         browsable? && data.any? { |d| ['http', 'https'].include?(d.scheme) }
       end
 
+      # @return [Array<String>] all data elements
+      # @note return empty array when the manifest not include http or https scheme(s) of data
+      # @since 2.5.0
       def schemes
         return unless schemes?
 
@@ -228,10 +235,16 @@ module Android
             .uniq
       end
 
+      # the deep links exists with non-http or non-https in data element or not
+      # @return [Boolean]
+      # @since 2.5.0
       def schemes?
         browsable? && data.any? { |d| !['http', 'https'].include?(d.scheme) }
       end
 
+      # the browsable category vaild or not
+      # @return [Boolean]
+      # @since 2.5.0
       def browsable?
         exist?(CATEGORY_BROWSABLE)
       end
@@ -378,19 +391,25 @@ module Android
       components.select { |c| c.type == 'service' }
     end
 
+    # @return [Array<String>] all deep link host and schemes in intent filters
+    # @note return empty array when the manifest include no http or https scheme of data
+    # @since 2.5.0
     def deep_links
       activities.each_with_object([]) do |activity, obj|
         intent_filters = activity.intent_filters
         next if intent_filters.empty?
 
         intent_filters.each do |filter|
-          next unless filter.deep_link?
+          next unless filter.deep_links?
 
           obj << filter.deep_links
         end
       end.flatten.uniq
     end
 
+    # @return [Array<String>] all schemes in intent filters
+    # @note return empty array when the manifest not include http or https scheme(s) of data
+    # @since 2.5.0
     def schemes
       activities.each_with_object([]) do |activity, obj|
         intent_filters = activity.intent_filters
@@ -403,15 +422,6 @@ module Android
         end
       end.flatten.uniq
     end
-
-    # def intent_filters
-    #   components.each_with_object([]) do |component, obj|
-    #     intent_filters = component.intent_filters
-    #     next if intent_filters.empty?
-
-    #     obj << intent_filters
-    #   end.flatten
-    # end
 
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities that are launchers in the apk
     # @note return empty array when the manifest include no activities
