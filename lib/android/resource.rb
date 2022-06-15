@@ -355,12 +355,7 @@ module Android
         @types[type_id('string')].each do |type|
           str_hash  = {}
           type.entry_count.times do |i|
-            entry = type[i]
-            if entry.nil?
-              str_hash[i] = nil
-            else
-              str_hash[i] = @global_string_pool.strings[type[i].val.data]
-            end
+            str_hash[i] = lookup_string_value(type, i)
           end
           lang = type.config.locale_lang
           contry = type.config.locale_contry
@@ -374,6 +369,20 @@ module Android
         end
       end
       private :extract_res_strings
+
+      def lookup_string_value(type, index)
+        entry = type[index]
+        return nil if entry.nil?
+
+        if entry.val.data_type == ResValue::TYPE_REFERENCE
+          # this assumes that the value references another string resource, i.e. we're ignoring the type id of the reference
+          reference_id = entry.val.data & 0xffff
+          lookup_string_value(type, reference_id)
+        else
+          @global_string_pool.strings[entry.val.data]
+        end
+      end
+      private :lookup_string_value
 
       def inspect
         "<ResTablePackage offset:%#08x, size:%#x, name:\"%s\">" % [@offset, @size, @name]
@@ -523,6 +532,8 @@ module Android
     end
 
     class ResValue < Chunk
+      TYPE_REFERENCE = 0x01
+
       attr_reader :size, :data_type, :data
       def parse
         @size = read_int16
