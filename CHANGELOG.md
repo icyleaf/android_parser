@@ -1,8 +1,13 @@
 # ChangeLog
 
+## 2.5.1
+
+* Bugfix: Handle string resources referencing other resources.
+
 ## 2.5.0
 
 > New begins!
+
 ## 0.7.0
 
 * implement Apk#signs, Apk#certificates and Manifest#version_name (#14, #15)
