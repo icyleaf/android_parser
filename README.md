@@ -1,5 +1,10 @@
 # android_parser
 
+[![Language](https://img.shields.io/badge/ruby-2.5+-701516.svg)](.github/workflows/ci.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/icyleaf/android_parser/ci.yml)](https://github.com/icyleaf/android_parser/actions/workflows/ci.yml)
+[![Gem version](https://img.shields.io/gem/v/android_parser.svg?style=flat)](https://rubygems.org/gems/android_parser)
+[![License](https://img.shields.io/badge/license-MIT-red.svg?style=flat)](LICENSE.txt)
+
 Android Apk static analysis parser library for Ruby, forked from [playtestcloud/ruby_apk](https://github.com/playtestcloud/ruby_apk).
 
 ## Requirements
