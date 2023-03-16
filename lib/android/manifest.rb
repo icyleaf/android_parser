@@ -10,7 +10,7 @@ module Android
     # <activity>, <service>, <receiver> or <provider> element in <application> element of the manifest file.
     class Component
       # component types
-      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider', 'application']
+      TYPES = ['activity', 'activity-alias', 'service', 'receiver', 'provider', 'application', 'queries']
 
       # the element is valid Component element or not
       # @param [REXML::Element] elem xml element
@@ -322,6 +322,99 @@ module Android
       end
     end
 
+    # <intent>, <service>, <receiver> or <provider> element in <application> element of the manifest file.
+    class QueriesComponent
+      # component types
+      TYPES = ['package', 'intent', 'provider']
+
+      # @return [String] type string in TYPES
+      attr_reader :type
+      # @return [Manifest::Queries::Package]
+      attr_reader :packages
+      # @return [Array<Manifest::Queries::Intent>]
+      attr_reader :intents
+      # @return [Array<Manifest::Queries::Provider>]
+      attr_reader :providers
+      # @return [REXML::Element]
+      attr_reader :elem
+
+      # @param [REXML::Element] elem target element
+      # @raise [ArgumentError] when elem is invalid.
+      def initialize(elem)
+        raise ArgumentError unless Component.valid?(elem)
+
+        @elem = elem
+        @type = elem.name
+        @packages = parse_packages
+        @intents = parse_intents
+        @providers = parse_providers
+      end
+
+      private
+
+      def parse_packages
+        packages = []
+        return packages if @elem.elements['package'].nil?
+
+        @elem.each_element('package') do |package|
+          packages << Android::Manifest::Queries::Package.new(package)
+        end
+
+        packages
+      end
+
+      def parse_intents
+        intents = []
+        return intents if @elem.elements['intent'].nil?
+
+        @elem.each_element('intent') do |intent|
+          next if intent&.elements&.empty?
+          next unless Android::Manifest::Queries::Intent.valid?(intent)
+
+          intent = Android::Manifest::Queries::Intent.new(intent)
+          intents << intent unless intent.empty?
+        end
+
+        intents
+      end
+
+      def parse_providers
+        providers = []
+        return providers if @elem.elements['provider'].nil?
+
+        @elem.each_element('provider') do |provider|
+          providers << Android::Manifest::Queries::Provider.new(provider)
+        end
+
+        providers
+      end
+    end
+
+    class Queries < QueriesComponent
+      class Intent < Android::Manifest::IntentFilter; end
+      class Provider < Android::Manifest::Provider
+        def authorities
+          @authorities ||= @elem.attributes['authorities']
+        end
+      end
+
+      class Package
+        # @return [String] action name of queries
+        attr_reader :name
+        # @return [String] action type of intent-filter
+        attr_reader :type
+
+        def initialize(elem)
+          @type = 'package'
+          @name = elem.attributes['name']
+        end
+      end
+
+      def self.valid?(elem)
+        elem&.name == 'queries'
+      end
+    end
+
     #################################
     # Manifest class definitions
     #################################
@@ -368,6 +461,13 @@ module Android
         end
       end
       components
+    end
+
+    # Returns the manifest's queries element or nil, if there isn't any.
+    # @return [Android::Manifest::Queries] the manifest's application element
+    def queries
+      element = @doc.elements['/manifest/queries']
+      Queries.new(element) if Queries.valid?(element)
     end
 
     # @return [Array<Android::Manifest::Activity&ActivityAlias>] all activities in the apk
