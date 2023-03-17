@@ -299,4 +299,11 @@ describe Android::Apk do
       it { subject['META-INF/CERT.RSA'].should be_a OpenSSL::X509::Certificate }
     end
   end
+
+  describe '#kotlin?' do
+    context 'with sampe apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_with_kotlin.apk') }
+      it { should be_kotlin }
+    end
+  end
 end
