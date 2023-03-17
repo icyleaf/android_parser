@@ -189,7 +189,7 @@ module Android
     # @return [nil] when label is not found
     # @deprecated move to {Android::Manifest#label}
     # @since 0.6.0
-    def label(lang=nil)
+    def label(lang = nil)
       @manifest.label
     end
 
@@ -204,21 +204,59 @@ module Android
     # @return [Hash{ String => OpenSSL::PKCS7 } ] key: sign file path, value: signature
     # @since 0.7.0
     def signs
-      signs = {}
-      self.each_file do |path, data|
-        # find META-INF/xxx.{RSA|DSA}
-        next unless path =~ /^META-INF\// && data.unpack("CC") == [0x30, 0x82]
-        signs[path] = OpenSSL::PKCS7.new(data)
-      end
-      signs
+      @signs ||= lambda {
+        signs = {}
+        self.each_file do |path, data|
+          # find META-INF/xxx.{RSA|DSA}
+          next unless path =~ /^META-INF\// && data.unpack("CC") == [0x30, 0x82]
+
+          signs[path] = OpenSSL::PKCS7.new(data)
+        end
+        signs
+      }.call
     end
 
     # certificate info which is used for signing
     # @return [Hash{String => OpenSSL::X509::Certificate }] key: sign file path, value: first certficate in the sign file
     # @since 0.7.0
     def certificates
-      return Hash[self.signs.map{|path, sign| [path, sign.certificates.first] }]
+      @certificates ||= Hash[self.signs.map{|path, sign| [path, sign.certificates.first] }]
     end
+
+    # detect if use kotlin language (may be third-party sdk or not)
+    # @return [Boolean]
+    # @since 2.6.0
+    def kotlin?
+      @kotlin ||= kotlin_file? || kotlin_classes?
+    end
+
+    private
+
+    def kotlin_file?
+      KOTLIN_FILES.any? do |file|
+        begin
+          entry(file)
+        rescue
+          next
+        end
+      end
+    end
+
+    def kotlin_classes?
+      @dex.classes.any? do |class_info|
+        class_info.type.start_with?('kotlin.') ||
+        class_info.type.start_with?('kotlinx.')
+      end
+    end
+
+    KOTLIN_FILES = [
+      'kotlin-tooling-metadata.json',
+      'kotlin/kotlin.kotlin_builtins',
+      'META-INF/kotlinx_coroutines_android.version',
+      'META-INF/kotlinx_coroutines_core.version',
+      'META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler',
+      'META-INF/services/kotlinx.coroutines.internal.MainDispatcherFactory'
+    ].freeze
   end
 end
 

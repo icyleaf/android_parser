@@ -11,6 +11,7 @@ describe Android::Dex::ClassInfo do
   context 'about the last class in Dex#classes with sample_classes.dex' do
     let(:last_class) { dex.classes.last }
     its(:name){ should eq 'Lexample/app/sample/SampleCode;' }
+    its(:type){ should eq 'example.app.sample.SampleCode' }
     its(:access_flags){ should be_instance_of Android::Dex::ClassAccessFlag }
     its(:super_class){ should eq 'Ljava/lang/Object;' }
     its(:class_data){ should be_instance_of Android::Dex::DexObject::ClassDataItem }

@@ -29,16 +29,32 @@ module Android
       # @return [DexObject::ClassDefItem]
       attr_reader :class_def
 
+      # return full namespace of class
+      #
+      # sample value like `Landroidx/activity/Cancellable;`
+      #
+      # @return [String] class name
       def name
-        @dex.type_resolve(@class_def[:class_idx])
+        @name ||= @dex.type_resolve(@class_def[:class_idx])
       end
+
       def super_class
-        if @class_def[:superclass_idx] != NO_INDEX
-          @super_class = @dex.type_resolve(@class_def[:superclass_idx])
-        else
-          nil
-        end
+        @super_class ||= if @class_def[:superclass_idx] != NO_INDEX
+            @dex.type_resolve(@class_def[:superclass_idx])
+          else
+            nil
+          end
       end
+
+      # Convert name to human readable string
+      #
+      # From `Landroidx/activity/Cancellable;` to `androidx.activity.Cancellable`
+      #
+      # @return [String] human readable name
+      def type
+        @type ||= name.gsub('/', '.')[1..-2]
+      end
+
       # @param [Dex::ClassDefItem] class_def
       # @param [Dex] dex dex class instance
       def initialize(class_def, dex)
@@ -62,6 +78,7 @@ module Android
       end
 
       private
+
       def cls2info(arr, cls, idx_key)
         idx = 0
         ret = []
