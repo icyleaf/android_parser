@@ -700,4 +700,73 @@ EOS
       end
     end
   end
+
+  context "with sample_AndroidManifest_with_queries.xml" do
+    let(:bin_xml_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest_with_queries.xml') }
+    let(:bin_xml){ File.open(bin_xml_path, 'rb') {|f| f.read } }
+    let(:manifest){ Android::Manifest.new(bin_xml) }
+
+    # describe "#use_permissions" do
+    #   subject { manifest.use_permissions }
+    #   context "with valid 3 permission elements" do
+    #     before do
+    #       3.times do |i|
+    #         elem = REXML::Element.new("uses-permission")
+    #         elem.add_attribute 'name', "permission#{i}"
+    #         dummy_xml.root << elem
+    #       end
+    #     end
+
+    #     it { subject.should have(3).items }
+
+    #     it "should have permissions" do
+    #       subject.should include("permission0")
+    #       subject.should include("permission1")
+    #       subject.should include("permission2")
+    #     end
+    #   end
+
+    describe "#queries" do
+      subject { manifest.queries }
+      context "with queries element" do
+        it "should has only one queries" do
+          subject.should be_instance_of(Android::Manifest::Queries)
+        end
+      end
+
+      context "with inside of queries element" do
+        it "should has only one package" do
+          subject.packages.length.should == 1
+
+          package = subject.packages[0]
+          package.should be_instance_of(Android::Manifest::Queries::Package)
+          package.name.should == 'com.google.android.gms.policy_cast_dynamite'
+          package.type.should == 'package'
+        end
+
+        it "should has only one intent" do
+          subject.intents.length.should == 1
+
+          intent = subject.intents[0]
+          intent.should be_instance_of(Android::Manifest::Queries::Intent)
+          intent.actions.length.should == 1
+          intent.categories.length.should == 1
+          intent.data.length.should == 1
+
+          intent.categories[0].name.should == 'android.intent.category.BROWSABLE'
+          intent.actions[0].name.should == 'android.intent.action.VIEW'
+          intent.data[0].scheme.should == 'https'
+        end
+
+        it "should has only one provider" do
+          subject.providers.length.should == 1
+
+          provider = subject.providers[0]
+          provider.should be_instance_of(Android::Manifest::Queries::Provider)
+          provider.authorities.should == 'list'
+          provider.type.should == 'provider'
+        end
+      end
+    end
+  end
 end
