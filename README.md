@@ -55,7 +55,7 @@ icons.each do |name, data|
 end
 ```
 
-#### Extract signature and certificate information from Apk (since v0.7.0)
+#### Extract v1 signature and certificate information from Apk (since v0.7.0)
 
 ```ruby
 apk = Android::Apk.new('sample.apk')
