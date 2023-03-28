@@ -200,14 +200,14 @@ module Android
       @layouts ||= Layout.collect_layouts(self) # lazy parse
     end
 
-    # apk's signature information
+    # apk's v1 signature information
     # @return [Hash{ String => OpenSSL::PKCS7 } ] key: sign file path, value: signature
     # @since 0.7.0
     def signs
       @signs ||= lambda {
         signs = {}
         self.each_file do |path, data|
-          # find META-INF/xxx.{RSA|DSA}
+          # find META-INF/xxx.{RSA|DSA|EC}
           next unless path =~ /^META-INF\// && data.unpack("CC") == [0x30, 0x82]
 
           signs[path] = OpenSSL::PKCS7.new(data)
@@ -216,7 +216,7 @@ module Android
       }.call
     end
 
-    # certificate info which is used for signing
+    # v1 certificate info which is used for signing
     # @return [Hash{String => OpenSSL::X509::Certificate }] key: sign file path, value: first certficate in the sign file
     # @since 0.7.0
     def certificates
