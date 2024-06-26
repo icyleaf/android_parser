@@ -220,6 +220,16 @@ module Android
       @certificates ||= Hash[self.signs.map{|path, sign| [path, sign.certificates.first] }]
     end
 
+    # Return all architectures (all most for universal apk)
+    # @return [Array<String>]
+    # @since 2.7.0
+    def archs
+      @archs ||= zip.glob('lib/**/*').each_with_object([]) do |entry, obj|
+        arch = entry.name.split('/')[1]
+        obj << arch unless obj.include?(arch)
+      end
+    end
+
     # detect if use kotlin language (may be third-party sdk or not)
     # @return [Boolean]
     # @since 2.6.0
