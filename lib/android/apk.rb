@@ -230,6 +230,13 @@ module Android
       end
     end
 
+    # detect if contains multi-platforms (native machine code)
+    # @return [Boolean]
+    # @since 2.7.0
+    def universal?
+      archs.size > 1
+    end
+
     # detect if use kotlin language (may be third-party sdk or not)
     # @return [Boolean]
     # @since 2.6.0
