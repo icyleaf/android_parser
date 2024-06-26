@@ -326,7 +326,7 @@ module Android
 
         @types = {}
         @specs = {}
-        @libraries = {}
+        @libraries = []
         while offset < (@offset + @size)
           type = @data[offset, 2].unpack('v')[0]
           case type
@@ -341,9 +341,9 @@ module Android
             @specs[spec.id] = [] if @specs[spec.id].nil?
             @specs[spec.id] << spec
           when TYPE_LIBRARY
-            libraries = ResTableLibraryType.new(@data, offset)
+            library = ResTableLibraryType.new(@data, offset)
             offset += library.size
-            @libraries.concat(libraries)
+            @libraries.concat(library.libraries)
           else
             raise UnknownChunkType, "chunk type error: type:%#04x" % type
           end
@@ -597,7 +597,7 @@ module Android
       @res_table.package_count
     end
 
-    #  This method only support string resource for now.
+    # This method only support string resource for now.
     # find resource by resource id
     # @param [String] res_id (like '@0x7f010001' or '@string/key')
     # @param [Hash] opts option
