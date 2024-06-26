@@ -453,10 +453,8 @@ module Android
       def parse
         @size = read_int32
         @imei = read_int32
-        la = @data_io.read(2)
-        @locale_lang = la unless la == "\x00\x00"
-        cn = @data_io.read(2)
-        @locale_contry = cn unless cn == "\x00\x00"
+        @locale_lang = unpack_locale(@data_io.read(1), @data_io.read(1), 'a')
+        @locale_contry = unpack_locale(@data_io.read(1), @data_io.read(1), '0')
         @screen_type = read_int32
         @input = read_int32
         @screen_input = read_int32
@@ -465,6 +463,27 @@ module Android
       end
       def inspect
         "<ResTableConfig size:#{@size}, imei:#{@imei}, la:'#{@locale_lang}' cn:'#{@locale_contry}'"
+      end
+
+      private
+
+      # Convert from https://github.com/LoyieKing/Apktool/blob/e0e6cfd03f10d710e666c29456659688fb5aeea2/brut.apktool/apktool-lib/src/main/java/brut/androlib/res/decoder/ARSCDecoder.java#L474
+      def unpack_locale(in0, in1, base)
+        return if in0 == "\x00" && in1 == "\x00"
+
+        in0_value = in0.ord
+        in1_value = in1.ord
+        # check high bit, if so we have a packed 3 letter code
+        return [(in0_value).chr, (in1_value).chr].join('') unless ((in0_value >> 7) & 1) == 1
+
+        first = in1_value & 0x1F
+        second = ((in1_value & 0xE0) >> 5) + ((in0_value & 0x03) << 3)
+        third = (in0_value & 0x7C) >> 2
+
+        base_value = base.ord
+        # since this function handles languages & regions, we add the value(s) to the base char
+        # which is usually 'a' or '0' depending on language or region.
+        [(first + base_value).chr, (second + base_value).chr, (third + base_value).chr].join('')
       end
     end
 
