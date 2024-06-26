@@ -19,6 +19,10 @@ describe Android::Resource do
       it { should include 'Hello World, SampleActivity!' }
       it { should include '日本語リソース' }
     end
+    describe '#locales' do
+      subject { resource.locales }
+      it { should have(0).items } # depends on sample_resources.arsc
+    end
   end
   context 'with sample_resources.arsc data' do
     let(:res_path) { File.expand_path(File.dirname(__FILE__) + '/data/sample_resources.arsc') }
@@ -104,6 +108,11 @@ describe Android::Resource do
         subject {resource.packages}
         it { should be_instance_of Hash}
         it { subject.size.should eq 1 }
+      end
+      describe '#locales' do
+        subject { resource.locales }
+        it { should have(1).items }
+        it { should include 'ja' }
       end
       describe 'ResTablePackage' do
         subject { resource.packages.first[1] }

@@ -300,10 +300,59 @@ describe Android::Apk do
     end
   end
 
-  describe '#kotlin?' do
+  describe '#locales' do
     context 'with sampe apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }
+      subject { apk.resource.locales }
+      it { should be_a Array }
+      it { should have(0).item }
+    end
+
+    context 'with kotlin sample apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_with_kotlin.apk') }
+      subject { apk.resource.locales }
+      it { should be_a Array }
+      it { should have(74).item }
+      it { should include('en') }
+    end
+  end
+
+  describe '#kotlin?' do
+    context 'with kotlin sample apk file' do
       let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_with_kotlin.apk') }
       it { should be_kotlin }
+    end
+  end
+
+  describe '#archs' do
+    context 'with sampe apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }
+      subject { apk.archs }
+      it { should be_a Array }
+      it { should have(0).item }
+    end
+
+    context 'with universal apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_universal.apk') }
+      subject { apk.archs }
+      it { should be_a Array }
+      it { should have(4).item }
+      it { should include('armeabi-v7a') }
+      it { should include('arm64-v8a') }
+      it { should include('x86') }
+      it { should include('x86_64') }
+    end
+  end
+
+  describe '#universal?' do
+    context 'with sample apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample.apk') }
+      it { should_not be_universal }
+    end
+
+    context 'with universal apk file' do
+      let(:tmp_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_universal.apk') }
+      it { should be_universal }
     end
   end
 end
