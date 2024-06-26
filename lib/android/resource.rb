@@ -200,7 +200,7 @@ module Android
     end
 
     class ResTablePackage < ChunkHeader
-      attr_reader :name
+      attr_reader :name, :locales
 
       def global_string_pool=(pool)
         @global_string_pool = pool
@@ -374,6 +374,8 @@ module Android
             @res_strings_contry[contry] = str_hash unless contry.nil?
           end
         end
+
+        @locales = @res_strings_lang.keys
       end
       private :extract_res_strings
 
@@ -626,6 +628,13 @@ module Android
     # @since 0.5.0
     def res_hex_id(readable_id)
       first_pkg.res_hex_id(readable_id)
+    end
+
+    # Return resources locales
+    # @return [Array<String>] all strings of locales.
+    # @since 2.7.0
+    def locales
+      first_pkg.locales
     end
 
     def first_pkg
