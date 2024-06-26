@@ -324,19 +324,24 @@ module Android
 
         @types = {}
         @specs = {}
+        @libraries = {}
         while offset < (@offset + @size)
           type = @data[offset, 2].unpack('v')[0]
           case type
-          when 0x0201 # RES_TABLE_TYPE_TYPE
+          when TYPE_TYPE
             type = ResTableType.new(@data, offset, self)
             offset += type.size
             @types[type.id] = [] if @types[type.id].nil?
             @types[type.id] << type
-          when 0x0202 # RES_TABLE_TYPE_SPEC_TYPE`
+          when TYPE_SPEC_TYPE
             spec = ResTableTypeSpec.new(@data, offset)
             offset += spec.size
             @specs[spec.id] = [] if @specs[spec.id].nil?
             @specs[spec.id] << spec
+          when TYPE_LIBRARY
+            libraries = ResTableLibraryType.new(@data, offset)
+            offset += library.size
+            @libraries.concat(libraries)
           else
             raise "chunk type error: type:%#04x" % type
           end
@@ -531,29 +536,54 @@ module Android
       end
     end
 
+    class ResTableLibraryType < ChunkHeader
+      attr_reader :libraries
+
+      def parse
+        super
+        @libraries = []
+        library_count = read_int32
+        library_count.times do
+          package_id = read_int32
+          package_name = @data_io.read(128).force_encoding(Encoding::UTF_16LE).strip
+          @libraries << ResTableLibraryValue.new(package_id, package_name)
+        end
+      end
+      private :parse
+
+      def inspect
+        "<ResTableLibraryType library_count:#{@libraries.size}>"
+      end
+
+      ResTableLibraryValue = Struct.new(:package_id, :package_name)
+    end
+
     class ResValue < Chunk
       TYPE_REFERENCE = 0x01
 
       attr_reader :size, :data_type, :data
       def parse
         @size = read_int16
-        res0 = read_int8 # Always set 0.
+        _res0 = read_int8 # Always set 0.
         @data_type = read_int8
         @data = read_int32
       end
       private :parse
     end
 
-    ######################################################################
+    #################################
+    # Resource class definitions
+    #################################
+
     # @returns [Hash] { name(String) => value(ResTablePackage) }
     attr_reader :packages
 
     def initialize(data)
       data.force_encoding(Encoding::ASCII_8BIT)
       @data = data
-      parse()
-    end
 
+      parse
+    end
 
     # @return [Array<String>] all strings defined in arsc.
     def strings
@@ -607,27 +637,38 @@ module Android
 
       while offset < @data.size
         type = @data[offset, 2].unpack('v')[0]
-        #print "[%#08x] " % offset
+        logger.debug "[%#08x] " % offset
         @packages = {}
         case type
-        when 0x0001 # RES_STRING_POOL_TYPE
-          @string_pool = ResStringPool.new(@data, offset)
-          offset += @string_pool.size
-          #puts "RES_STRING_POOL_TYPE %#x, %#x" % [@string_pool.size, offset]
-        when 0x0002 # RES_TABLE_TYPE
-          #puts "RES_TABLE_TYPE"
+        when TYPE_TABLE
           @res_table = ResTableHeader.new(@data, offset)
           offset += @res_table.header_size
-        when 0x0200 # RES_TABLE_PACKAGE_TYPE
-          #puts "RES_TABLE_PACKAGE_TYPE"
+          logger.debug "RES_TABLE_TYPE"
+        when TYPE_STRING_POOL_TYPE
+          @string_pool = ResStringPool.new(@data, offset)
+          offset += @string_pool.size
+          logger.debug("RES_STRING_POOL_TYPE %#x, %#x" % [@string_pool.size, offset])
+        when TYPE_PACKAGE
           pkg = ResTablePackage.new(@data, offset)
           pkg.global_string_pool = @string_pool
           offset += pkg.size
           @packages[pkg.name] = pkg
+          logger.debug "RES_TABLE_PACKAGE_TYPE"
         else
           raise "chunk type error: type:%#04x" % type
         end
       end
     end
+
+    def logger
+      Android.logger
+    end
+
+    TYPE_STRING_POOL_TYPE = 0x0001    # RES_STRING_POOL_TYPE
+    TYPE_TABLE = 0x0002               # RES_TABLE_TYPE
+    TYPE_PACKAGE = 0x0200             # RES_TABLE_PACKAGE_TYPE
+    TYPE_TYPE = 0x0201                # RES_TABLE_TYPE_TYPE
+    TYPE_SPEC_TYPE = 0x0202           # RES_TABLE_TYPE_SPEC_TYPE
+    TYPE_LIBRARY = 0x0203             # RES_TABLE_LIBRARY_TYPE
   end
 end
