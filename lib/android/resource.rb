@@ -6,6 +6,8 @@ module Android
   # /frameworks/base/include/utils/ResourceTypes.h
   # @see http://justanapplication.wordpress.com/category/android/android-resources/
   class Resource
+    class UnknownChunkType < StandardError; end
+
     class Chunk
       def initialize(data, offset)
         data.force_encoding(Encoding::ASCII_8BIT)
@@ -279,7 +281,7 @@ module Android
         "@#{type(tid)}/#{key(keyid)}"
       end
       def res_hex_id(readable_id, opt={})
-        dummy, typestr, keystr = readable_id.match(/^@?(\w+)\/(\w+)$/).to_a
+        _dummy, typestr, keystr = readable_id.match(/^@?(\w+)\/(\w+)$/).to_a
         tid = type_id(typestr)
         raise NotFoundError unless @types.has_key?(tid)
         keyid = @types[tid][0].keys[keystr]
@@ -343,7 +345,7 @@ module Android
             offset += library.size
             @libraries.concat(libraries)
           else
-            raise "chunk type error: type:%#04x" % type
+            raise UnknownChunkType, "chunk type error: type:%#04x" % type
           end
         end
       end
@@ -353,7 +355,7 @@ module Android
         @res_strings_lang = {}
         @res_strings_contry = {}
         begin
-          type = type_id('string')
+          _type = type_id('string')
         rescue NotFoundError
           return
         end
@@ -414,8 +416,8 @@ module Android
       def parse
         super
         @id = read_int8
-        res0 = read_int8   # must be 0.(maybe 4byte align)
-        res1 = read_int16  # must be 0.(maybe 4byte align)
+        _res0 = read_int8   # must be 0.(maybe 4byte align)
+        _res1 = read_int16  # must be 0.(maybe 4byte align)
         @entry_count = read_int32
         @entry_start = read_int32
         @config = ResTableConfig.new(@data, current_position)
@@ -470,8 +472,8 @@ module Android
       def parse
         super
         @id = read_int8
-        res0 = read_int8 # must be 0.(maybe 4byte align)
-        res1 = read_int16 # must be 0.(maybe 4byte align)
+        _res0 = read_int8 # must be 0.(maybe 4byte align)
+        _res1 = read_int16 # must be 0.(maybe 4byte align)
         @entry_count = read_int32
       end
       private :parse
@@ -655,7 +657,7 @@ module Android
           @packages[pkg.name] = pkg
           logger.debug "RES_TABLE_PACKAGE_TYPE"
         else
-          raise "chunk type error: type:%#04x" % type
+          raise UnknownChunkType, "chunk type error: type:%#04x" % type
         end
       end
     end
