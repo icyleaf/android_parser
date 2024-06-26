@@ -17,7 +17,7 @@ module Android
       # @return [Boolean]
       def self.valid?(elem)
         TYPES.include?(elem.name.downcase)
-      rescue => e
+      rescue
         false
       end
 
@@ -83,7 +83,7 @@ module Android
       # @return [Boolean]
       def self.valid?(elem)
         ['activity', 'activity-alias'].include?(elem.name.downcase)
-      rescue => e
+      rescue
         false
       end
 
@@ -145,7 +145,7 @@ module Android
         filter&.elements&.any? do |elem|
           TYPES.include?(elem&.name&.downcase)
         end
-      rescue => e
+      rescue
         false
       end
 
@@ -418,7 +418,7 @@ module Android
     #################################
     # Manifest class definitions
     #################################
-    #
+
     # @return [REXML::Document] manifest xml
     attr_reader :doc
 
