@@ -8,9 +8,9 @@ module Android
     # @return [Boolean]
     def self.apk?(path)
       begin
-        apk = Apk.new(path)
+        Apk.new(path)
         return true
-      rescue => e
+      rescue
         return false
       end
     end
@@ -20,7 +20,7 @@ module Android
     # @return [Boolean]
     def self.elf?(data)
       data[0..3] == "\x7f\x45\x4c\x46"
-    rescue => e
+    rescue
       false
     end
 
@@ -29,7 +29,7 @@ module Android
     # @return [Boolean]
     def self.cert?(data)
       data[0..1] == "\x30\x82"
-    rescue => e
+    rescue
       false
     end
 
@@ -38,7 +38,7 @@ module Android
     # @return [Boolean]
     def self.dex?(data)
       data[0..7] == "\x64\x65\x78\x0a\x30\x33\x35\x00" # "dex\n035\0"
-    rescue => e
+    rescue
       false
     end
 
@@ -48,9 +48,8 @@ module Android
     def self.valid_dex?(data)
       Android::Dex.new(data)
       true
-    rescue => e
+    rescue
       false
     end
   end
 end
-

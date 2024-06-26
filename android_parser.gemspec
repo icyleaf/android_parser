@@ -15,13 +15,10 @@ Gem::Specification.new do |spec|
   spec.license       = 'MIT'
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 2.5'
+  spec.required_ruby_version = '>= 3.1'
 
   spec.add_dependency 'rubyzip', '>= 1.0', '< 3.0'
-
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0') then
-    spec.add_dependency 'rexml', '> 3.0'
-  end
+  spec.add_dependency 'rexml', '> 3.0' # requires for Ruby 3.0+
 
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rspec-its', '>= 1.2.0'

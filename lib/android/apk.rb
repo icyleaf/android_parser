@@ -12,7 +12,6 @@ module Android
 
   # apk object class
   class Apk
-
     # @return [String] apk file path
     attr_reader :path
     # @return [Android::Manifest] manifest instance
@@ -43,32 +42,30 @@ module Android
 
       @path = filepath
       raise NotFoundError, "'#{filepath}'" unless File.exist? @path
-      begin
-        @zip = Zip::File.open(@path)
-      rescue Zip::Error => e
-        raise NotApkFileError, e.message
-      end
 
       @bindata = File.open(@path, 'rb') {|f| f.read }
       @bindata.force_encoding(Encoding::ASCII_8BIT)
-      raise NotApkFileError, "manifest file is not found." if @zip.find_entry(MANIFEST).nil?
+      raise NotApkFileError, 'manifest file is not found.' if zip.find_entry(MANIFEST).nil?
+
       begin
         @resource = Android::Resource.new(self.file(RESOURCE))
       rescue => e
-        $stderr.puts "failed to parse resource: #{e}"
-        #$stderr.puts e.backtrace
+        logger.error "failed to parse resource: #{e} with backtrace"
+        logger.error e.backtrace
       end
+
       begin
         @manifest = Android::Manifest.new(self.file(MANIFEST), @resource)
       rescue => e
-        $stderr.puts "failed to parse manifest:#{e}"
-        #$stderr.puts e.backtrace
+        logger.error "failed to parse manifest:#{e} with backtrace"
+        logger.error e.backtrace
       end
+
       begin
         @dex = Android::Dex.new(self.file(DEX))
       rescue => e
-        $stderr.puts "failed to parse dex:#{e}"
-        #$stderr.puts e.backtrace
+        logger.error "failed to parse dex:#{e} with backtrace"
+        logger.error e.backtrace
       end
     end
 
@@ -105,9 +102,9 @@ module Android
     # @yieldparam [String] name file name in apk
     # @yieldparam [String] data file data in apk
     def each_file
-      @zip.each do |entry|
+      zip.each do |entry|
         next unless entry.file?
-        yield entry.name, @zip.read(entry)
+        yield entry.name, zip.read(entry)
       end
     end
 
@@ -116,13 +113,13 @@ module Android
     # @return [String] binary data
     # @raise [NotFoundError] when 'name' doesn't exist in the apk
     def file(name) # get data by entry name(path)
-      @zip.read(entry(name))
+      zip.read(entry(name))
     end
 
     # @yield [entry]
     # @yieldparam [Zip::Entry] entry zip entry
     def each_entry
-      @zip.each do |entry|
+      zip.each do |entry|
         next unless entry.file?
         yield entry
       end
@@ -133,7 +130,7 @@ module Android
     # @return [Zip::Entry] zip entry object
     # @raise [NotFoundError] when 'name' doesn't exist in the apk
     def entry(name)
-      entry = @zip.find_entry(name)
+      entry = zip.find_entry(name)
       raise NotFoundError, "'#{name}'" if entry.nil?
       return entry
     end
@@ -257,6 +254,15 @@ module Android
       'META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler',
       'META-INF/services/kotlinx.coroutines.internal.MainDispatcherFactory'
     ].freeze
+
+    def zip
+      @zip ||= Zip::File.open(@path)
+    rescue Zip::Error => e
+      raise NotApkFileError, e.message
+    end
+
+    def logger
+      Android.logger
+    end
   end
 end
-
