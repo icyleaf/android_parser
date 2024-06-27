@@ -212,6 +212,7 @@ module Android
         signs
       }.call
     end
+    alias signatures signs
 
     # v1 certificate info which is used for signing
     # @return [Hash{String => OpenSSL::X509::Certificate }] key: sign file path, value: first certficate in the sign file
@@ -229,6 +230,7 @@ module Android
         obj << arch unless obj.include?(arch)
       end
     end
+    alias architectures archs
 
     # detect if contains multi-platforms (native machine code)
     # @return [Boolean]
