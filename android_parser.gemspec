@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = 'android_parser'
-  spec.version       = '2.7.0.beta1'
+  spec.version       = '2.7.0'
   spec.authors       = ['SecureBrain', 'icyleaf']
   spec.email         = ['info@securebrain.co.jp', 'icyleaf.cn@gmail.com']
   spec.platform      = Gem::Platform::RUBY

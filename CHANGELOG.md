@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 2.7.0.beta1
+## 2.7.0
 
 * Dropped Ruby 2.5~3.0 support, now requires Ruby 3.1+.
 * Bugfix: [#7] parse library type to fix unknown chunk type 0x0203.
