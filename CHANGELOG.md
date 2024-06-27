@@ -1,5 +1,19 @@
 # ChangeLog
 
+## 2.7.0.beta1
+
+* Dropped Ruby 2.5~3.0 support, now requires Ruby 3.1+.
+* Bugfix: [#7] parse library type to fix unknown chunk type 0x0203.
+* Bugfix: fix 3bits of lang and country in locales.
+* add fetch locales support.
+* add architectures support.
+* add detect universal apk.
+
+## 2.6.0
+
+* [#2] add queries component support.
+* [#3] add detect enable kotlin code.
+
 ## 2.5.1
 
 * Bugfix: Handle string resources referencing other resources.
