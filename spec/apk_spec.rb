@@ -19,12 +19,12 @@ class TempApk
     File.unlink(@path) if File.exist? @path
   end
   def append(entry_name, data)
-    Zip::File.open(@path, Zip::File::CREATE) { |zip|
+    Zip::File.open(@path, create: true) { |zip|
       zip.get_output_stream(entry_name) {|f| f.write data }
     }
   end
   def remove(entry_name)
-    Zip::File.open(@path, Zip::File::CREATE) { |zip|
+    Zip::File.open(@path, create: true) { |zip|
       zip.remove(entry_name)
     }
   end

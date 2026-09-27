@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 3.1'
 
-  spec.add_dependency 'rubyzip', '>= 1.0', '< 3.0'
+  spec.add_dependency 'rubyzip', '>= 3.4.0'
   spec.add_dependency 'rexml', '> 3.0' # requires for Ruby 3.0+
 
   spec.add_development_dependency 'rspec', '~> 3.0'
