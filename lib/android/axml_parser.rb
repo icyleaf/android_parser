@@ -30,6 +30,8 @@ module Android
     TAG_CDSECT =          0x00100105
     TAG_ENTITY_REF =      0x00100106
 
+    ANDROID_NAMESPACE_URI = 'http://schemas.android.com/apk/res/android'
+
     VAL_TYPE_NULL              =0
     VAL_TYPE_REFERENCE         =1
     VAL_TYPE_ATTRIBUTE         =2
@@ -96,10 +98,16 @@ module Android
 
     # parse tag
     def parse_tags
-      # skip until first TAG_START_NAMESPACE
+      # skip until first TAG_START_NAMESPACE or TAG_START
       pos = @xml_offset
-      pos += 4 until (word(pos) == TAG_START_NAMESPACE)
+      pos += 4 until [TAG_START_NAMESPACE, TAG_START].include?(first_tag = word(pos))
       @io.pos -= 4
+
+      # `aapt2 link --no-xml-namespaces` (used by Chromium builds) strips namespace
+      # chunks, so declare the android namespace ourselves.
+      if first_tag == TAG_START
+        @namespaces.push({ prefix: 'android', uri: ANDROID_NAMESPACE_URI, nesting_level: current_nesting_level })
+      end
 
       # read tags
       #puts "start tag parse: %d(%#x)" % [@io.pos, @io.pos]
