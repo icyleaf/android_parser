@@ -13,6 +13,10 @@ describe Android::AXMLParser do
   let(:bin_xml_with_transitive_namespace_declaration){ File.open(bin_xml_with_transitive_namespace_declaration_path, 'rb') {|f| f.read } }
   let(:axmlparser_with_transitive_namespace_declaration){ Android::AXMLParser.new(bin_xml_with_transitive_namespace_declaration) }
 
+  let(:bin_xml_without_namespaces_path){ File.expand_path(File.dirname(__FILE__) + '/data/sample_AndroidManifest_without_namespaces.xml') }
+  let(:bin_xml_without_namespaces){ File.open(bin_xml_without_namespaces_path, 'rb') {|f| f.read } }
+  let(:axmlparser_without_namespaces){ Android::AXMLParser.new(bin_xml_without_namespaces) }
+
   describe "#parse" do
 
     subject { axmlparser.parse }
@@ -49,6 +53,22 @@ describe Android::AXMLParser do
       it { should be_instance_of(REXML::Document) }
       specify 'it should parse the full manifest even if there are namespaces' do
         subject.get_elements('/manifest/uses-permission/thisisjustatest').last.attributes['android:name'].should eq('this is a name')
+      end
+    end
+  end
+
+  describe "#parse without namespace chunks" do
+    subject { axmlparser_without_namespaces.parse }
+    context 'with sample_AndroidManifest_without_namespaces.xml' do
+      it { should be_instance_of(REXML::Document) }
+      specify 'should have 2 <uses-permission> elements' do
+        subject.get_elements('/manifest/uses-permission').should have(2).items
+      end
+      specify 'root element should declare the android namespace' do
+        subject.root.namespaces.should eq('android' => Android::AXMLParser::ANDROID_NAMESPACE_URI)
+      end
+      specify 'it should parse the same document as the manifest with namespace chunks' do
+        subject.to_s.should eq axmlparser.parse.to_s
       end
     end
   end
